@@ -22,11 +22,9 @@
 #include "task.h"
 
 #include "Detect_Task.h"
-#include "Calibrate_Task.h"
+
 #include "User_Task.h"
 #include "INS_Task.h"
-#include "Chassis_Task.h"
-#include "Gimbal_Task.h"
 
 #define INS_TASK_PRIO 20
 #define INS_TASK_SIZE 512

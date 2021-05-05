@@ -37,7 +37,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
-#include "calibrate_task.h"
+
 #include "remote_control.h"
 #include "start_task.h"
 
@@ -94,6 +94,4 @@ void BSP_init(void)
     }
     //遥控器初始化
     remote_control_init();
-    //flash读取函数，把校准值放回对应参数
-    cali_param_init();
 }
