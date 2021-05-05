@@ -46,7 +46,7 @@
 
 #define MPU6500_TEMPERATURE_PWM_INIT() TIM3_Init(MPU6500_TEMP_PWM_MAX, 1) //陀螺仪温度控制PWM初始化
 #define IMUTempPWM(pwm) TIM_SetCompare2(TIM3, (pwm))                      //pwm给定
-static int8_t get_control_temperate(void);
+static fp32 get_control_temperate(void);
 #define INS_GET_CONTROL_TEMPERATURE() get_control_temperate()             //获取控制温度的目标值
 
 #if defined(MPU6500_USE_DATA_READY_EXIT)
@@ -442,8 +442,8 @@ void MPU6500_DMA_IRQHandler(void)
         }
     }
 }
-int8_t get_control_temperate(void)
+fp32 get_control_temperate(void)
 {
-
+		return 40.f; 
 }
 #endif
