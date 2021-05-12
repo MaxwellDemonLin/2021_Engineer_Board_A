@@ -228,7 +228,7 @@ const motor_measure_t *get_Chassis_Motor_Measure_Point(uint8_t i)
 {
     return &motor_chassis[(i & 0x03)];
 }
-//返回底盘电机变量地址，通过指针方式获取原始数据
+//返回升降电机变量地址，通过指针方式获取原始数据
 const motor_measure_t *get_Lifter_Motor_Measure_Point(uint8_t i)
 {
     return &motor_lifter[(i)];

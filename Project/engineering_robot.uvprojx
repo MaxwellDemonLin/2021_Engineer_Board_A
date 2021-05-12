@@ -858,6 +858,11 @@
               <FileType>1</FileType>
               <FilePath>..\user\APP\lifter\lifter.c</FilePath>
             </File>
+            <File>
+              <FileName>chassis_task.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\user\APP\chassis_task\chassis_task.c</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>
