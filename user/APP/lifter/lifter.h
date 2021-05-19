@@ -12,6 +12,7 @@
 #define SMALL_ISLAND_KEY  KEY_PRESSED_OFFSET_X
 #define EXCHANGE_KEY      KEY_PRESSED_OFFSET_E
 #define LOOT_KEY          KEY_PRESSED_OFFSET_B
+#define DOWN_KEY          KEY_PRESSED_OFFSET_C
 
 //遥控器和高度转化比例
 #define LIFT_HEIGHT_RC_SEN 0.1f
@@ -24,6 +25,19 @@
 //编码器范围 
 #define Half_ecd_range 4096
 #define ecd_range 8191
+//速度PID
+#define LIFT_SPEED_KP 3000
+#define LIFT_SPEED_KI 0
+#define LIFT_SPEED_KD 0
+#define LIFT_SPEED_MAX_OUT 20000
+#define LIFT_SPEED_MAX_IOUT 0
+
+//圈数PID
+#define LIFT_COUNT_KP 20
+#define LIFT_COUNT_KI 0.01
+#define LIFT_COUNT_KD 0
+#define LIFT_COUNT_MAX_OUT 20000
+#define LIFT_COUNT_MAX_IOUT 20000
 
 //死区限制
 #define rc_deadline_limit(input, output, dealine)        \
@@ -47,6 +61,7 @@ typedef enum
    LIFT_EXCHANGE,
    LIFT_LOOT,
    LIFT_NO_FORCE,
+   LIFT_DOWN,
 } lift_mode_e;
 
 typedef struct
@@ -56,6 +71,7 @@ typedef struct
     lift_mode_e lift_mode;
     PidTypeDef lift_height_pid[2]; 
     PidTypeDef lift_speed_pid[2];
+    int16_t give_current[2];
     fp32 speed[2];
     fp32 speed_set;
     fp32 height[2];

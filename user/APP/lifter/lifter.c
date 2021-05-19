@@ -10,7 +10,8 @@ static void Lift_set_mode(Lift_control_e *lift_control_mode_set);
 static void Lift_set_mode(Lift_control_e *lift_control_mode_set);
 static void lift_set_height(Lift_control_e *lift_control_set_control);
 void Lift_task(void *pvParameters)
-{
+{   
+
     Lift_task_init(&lift_control);
     while (1)
     {
@@ -20,10 +21,19 @@ void Lift_task(void *pvParameters)
         lift_control_PID(&lift_control);
 
         CAN_CMD_LIFTER(lift_control.given_current[0],lift_control.given_current[1]);
+
+        vTaskDelay(2);
+
     }
 }
 void Lift_task_init(Lift_control_e *lift_control_init)
-{
+{   
+    fp32 lift_speed_pid[3]={LIFT_SPEED_KP,LIFT_SPEED_KI,LIFT_SPEED_KD};
+    fp32 lift_count_pid[3]={LIFT_COUNT_KP,LIFT_COUNT_KI,LIFT_COUNT_KD};
+    PID_Init(&lift_control_init->lift_speed_pid[0],PID_DELTA,lift_speed_pid,LIFT_SPEED_MAX_OUT,LIFT_SPEED_MAX_IOUT);
+    PID_Init(&lift_control_init->lift_speed_pid[1],PID_DELTA,lift_speed_pid,LIFT_SPEED_MAX_OUT,LIFT_SPEED_MAX_IOUT);
+    PID_Init(&lift_control_init->lift_height_pid[0],PID_DELTA,lift_count_pid,LIFT_COUNT_MAX_IOUT,LIFT_COUNT_MAX_IOUT);
+    PID_Init(&lift_control_init->lift_height_pid[1],PID_DELTA,lift_count_pid,LIFT_COUNT_MAX_IOUT,LIFT_COUNT_MAX_IOUT);
     lift_control_init->lift_RC = get_remote_control_point();
     lift_control_init->lift_motor_measure[0] = get_Lifter_Motor_Measure_Point(0);
 
