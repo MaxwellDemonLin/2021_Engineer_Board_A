@@ -150,6 +150,7 @@ static void lift_data_update(Lift_control_e *lift_update)
         lift_update->motor_count[0]++;
     }
 
+
     if (lift_update->lift_motor_measure[1]->ecd - lift_update->lift_motor_measure[1]->last_ecd > Half_ecd_range)
     {
         lift_update->motor_count[1]--;
