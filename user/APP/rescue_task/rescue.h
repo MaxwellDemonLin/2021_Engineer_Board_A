@@ -32,14 +32,31 @@ typedef enum
 } Claw_mode_e;
 typedef struct
 {
+    uint16_t *open_ecd_set;
+    uint16_t *close_ecd_set;
+} rescue_ecd_set_t;
+typedef struct
+{
+    uint16_t *open_ecd_set;
+    uint16_t *close_ecd_set;
+} rescue_count_set_t;
+typedef struct
+{
+    rescue_count_set_t *rescue_count_set;
+    rescue_ecd_set_t *rescue_ecd_set;
+} rescue_position_set_t;
+typedef struct
+{
     const RC_ctrl_t *rescue_RC; 
     const motor_measure_t *rescue_motor_measure[2];  
+    rescue_position_set_t *rescue_position_set[2];
     PidTypeDef rescue_count_pid[2]; 
     PidTypeDef rescue_speed_pid[2];
     int16_t give_current[2];
     fp32 speed[2];
     fp32 speed_set;
 
+    uint16_t ecd_set[2];
     Claw_mode_e Claw_mode;
     int16_t given_current[2];
     int8_t ecd_count[2];
@@ -47,6 +64,9 @@ typedef struct
     uint16_t motor_count[2];
 
 } rescue_control_e;
+
+
+
 
 
 

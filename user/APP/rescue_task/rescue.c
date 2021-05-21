@@ -42,25 +42,50 @@ void Rescue_init(rescue_control_e *rescue_init)
 
     PID_Init(&rescue_init->rescue_count_pid[0], PID_DELTA, rescue_count_pid, RESCUE_COUNT_MAX_IOUT, RESCUE_COUNT_MAX_IOUT);
     PID_Init(&rescue_init->rescue_count_pid[1], PID_DELTA, rescue_count_pid, RESCUE_COUNT_MAX_IOUT, RESCUE_COUNT_MAX_IOUT);
-    Rescue_task(rescue_init);
 }
 
 
-static void Rescue_cali(rescue_control_e *rescue_cail)
+static void Rescue_cali(rescue_control_e *rescue_cali)
 {
     static uint16_t cali_time = 0;
-    while(1)
+    static uint8_t cali_step =0 ;
+    if(cali_step == 0)
     {
         CAN_CMD_RESCUE(RESCUE_CALI_CURRENT,RESCUE_CALI_CURRENT);
-        if(rescue_cail->rescue_motor_measure[0]->ecd==rescue_cail->rescue_motor_measure[0]->last_ecd)
+        if(rescue_cali->rescue_motor_measure[0]->ecd==rescue_cali->rescue_motor_measure[0]->last_ecd)
         {
             cali_time++;
         }
         if(cali_time>CALI_TIME)
         {
-            break;
+            *(rescue_cali->rescue_position_set[0]->rescue_ecd_set->open_ecd_set)=rescue_cali->rescue_motor_measure[0]->ecd;
+            *(rescue_cali->rescue_position_set[1]->rescue_ecd_set->open_ecd_set)=rescue_cali->rescue_motor_measure[1]->ecd;
+            rescue_cali->rescue_position_set[0]->rescue_count_set->open_ecd_set=0;
+            rescue_cali->rescue_position_set[1]->rescue_count_set->open_ecd_set=0;
+            rescue_cali->motor_count[0]=0;
+            rescue_cali->motor_count[1]=0;
+            cali_step++;
         }
     }
+    if(cali_step == 1 )
+    {
+        CAN_CMD_RESCUE(RESCUE_CALI_CURRENT,RESCUE_CALI_CURRENT);
+        if(rescue_cali->rescue_motor_measure[0]->ecd==rescue_cali->rescue_motor_measure[0]->last_ecd)
+        {
+            cali_time++;
+        }
+        if(cali_time>CALI_TIME)
+        {
+            *(rescue_cali->rescue_position_set[0]->rescue_ecd_set->close_ecd_set)=rescue_cali->rescue_motor_measure[0]->ecd;
+            *(rescue_cali->rescue_position_set[1]->rescue_ecd_set->close_ecd_set)=rescue_cali->rescue_motor_measure[1]->ecd;
+            rescue_cali->rescue_position_set[0]->rescue_count_set->close_ecd_set=0;
+            rescue_cali->rescue_position_set[1]->rescue_count_set->close_ecd_set=0;
+            rescue_cali->motor_count[0]=0;
+            rescue_cali->motor_count[1]=0;
+            cali_step++;
+        }
+    }
+
 }
 
 static void Rescue_data_update(rescue_control_e *rescue_update)
