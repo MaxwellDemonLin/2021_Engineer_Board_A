@@ -1,6 +1,8 @@
 #include "exit_init.h"
 
 #include "stm32f4xx.h"
+#include "rescue.h"
+extern rescue_control_e rescue_control;
 
 void GPIOB_Exti8_GPIO_Init(void)
 {
@@ -124,9 +126,10 @@ void EXTI0_IRQHandler(void)
   //确保是否产生了EXTI Line中断
 	if(EXTI_GetITStatus(KEY1_INT_EXTI_LINE) != RESET) 
 	{
-
+    rescue_control.close_flag[0]=1;
 		EXTI_ClearITPendingBit(KEY1_INT_EXTI_LINE);     
 	}  
+
 }
 
 void EXTI1_IRQHandler(void)
@@ -134,9 +137,7 @@ void EXTI1_IRQHandler(void)
   //确保是否产生了EXTI Line中断
 	if(EXTI_GetITStatus(KEY2_INT_EXTI_LINE) != RESET) 
 	{
-
+    rescue_control.close_flag[1]=1;
 		EXTI_ClearITPendingBit(KEY2_INT_EXTI_LINE);     
 	}  
 }
-
-

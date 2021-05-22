@@ -5,6 +5,9 @@
 #include "CAN_receive.h"
 #include "remote_control.h"
 #include "pid.h"
+
+void Lift_task(void *pvParameters);
+
 #define WHEEL_PERIMETER  0.43f  //cm
 //底盘摇摆按键
 //#define RAW_KEY           KEY_PRESSED_OFFSET_R

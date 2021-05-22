@@ -1,12 +1,12 @@
 /**
   ****************************(C) COPYRIGHT 2016 DJI****************************
   * @file       main.c/h
-  * @brief      stm32³õÊ¼»¯ÒÔ¼°¿ªÊ¼ÈÎÎñfreeRTOS¡£hÎÄ¼þ¶¨ÒåÏà¹ØÈ«¾Öºê¶¨ÒåÒÔ¼°
-  *             typedef Ò»Ð©³£ÓÃÊý¾ÝÀàÐÍ
+  * @brief      stm32ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½Ô¼ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½freeRTOSï¿½ï¿½hï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È«ï¿½Öºê¶¨ï¿½ï¿½ï¿½Ô¼ï¿½
+  *             typedef Ò»Ð©ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
   * @note       
   * @history
   *  Version    Date            Author          Modification
-  *  V1.0.0     Dec-26-2018     RM              1. Íê³É
+  *  V1.0.0     Dec-26-2018     RM              1. ï¿½ï¿½ï¿½
   *
   @verbatim
   ==============================================================================
@@ -47,7 +47,7 @@ int main(void)
 {
     BSP_init();
     delay_ms(100);
-    startTast();
+    startTask();
     vTaskStartScheduler();
     while (1)
     {
@@ -55,43 +55,43 @@ int main(void)
     }
 }
 
-//ËÄ¸ö24v Êä³ö ÒÀ´Î¿ªÆô ¼ä¸ô 709us
+//ï¿½Ä¸ï¿½24v ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ 709us
 #define POWER_CTRL_ONE_BY_ONE_TIME 709
 
 void BSP_init(void)
 {
-    //ÖÐ¶Ï×é 4
+    //ï¿½Ð¶ï¿½ï¿½ï¿½ 4
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
-    //³õÊ¼»¯µÎ´ðÊ±ÖÓ
+    //ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½Î´ï¿½Ê±ï¿½ï¿½
     delay_init(configTICK_RATE_HZ);
-    //Á÷Ë®µÆ£¬ºìÂÌµÆ³õÊ¼»¯
+    //ï¿½ï¿½Ë®ï¿½Æ£ï¿½ï¿½ï¿½ï¿½ÌµÆ³ï¿½Ê¼ï¿½ï¿½
     led_configuration();
-    //stm32 °åÔØÎÂ¶È´«¸ÐÆ÷³õÊ¼»¯
+    //stm32 ï¿½ï¿½ï¿½ï¿½ï¿½Â¶È´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½
     temperature_ADC_init();
 #if GIMBAL_MOTOR_6020_CAN_LOSE_SLOVE
-    //stm32 Ëæ»úÊý·¢ÉúÆ÷³õÊ¼»¯
+    //stm32 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½
     RNG_init();
 #endif
-    //24Êä³ö¿ØÖÆ¿Ú ³õÊ¼»¯
+    //24ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ¿ï¿½ ï¿½ï¿½Ê¼ï¿½ï¿½
     power_ctrl_configuration();
-    //Ä¦²ÁÂÖµç»úPWM³õÊ¼»¯
+    //Ä¦ï¿½ï¿½ï¿½Öµï¿½ï¿½PWMï¿½ï¿½Ê¼ï¿½ï¿½
     fric_PWM_configuration();
-    //·äÃùÆ÷³õÊ¼»¯
+    //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½
     buzzer_init(30000, 90);
-    //¼¤¹âIO³õÊ¼»¯
+    //ï¿½ï¿½ï¿½ï¿½IOï¿½ï¿½Ê¼ï¿½ï¿½
     laser_configuration();
-    //¶¨Ê±Æ÷6 ³õÊ¼»¯
+    //ï¿½ï¿½Ê±ï¿½ï¿½6 ï¿½ï¿½Ê¼ï¿½ï¿½
     TIM6_Init(60000, 90);
-    //CAN½Ó¿Ú³õÊ¼»¯
+    //CANï¿½Ó¿Ú³ï¿½Ê¼ï¿½ï¿½
     CAN1_mode_init(CAN_SJW_1tq, CAN_BS2_2tq, CAN_BS1_6tq, 5, CAN_Mode_Normal);
     CAN2_mode_init(CAN_SJW_1tq, CAN_BS2_2tq, CAN_BS1_6tq, 5, CAN_Mode_Normal);
 
-    //24v Êä³ö ÒÀ´ÎÉÏµç
+    //24v ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½
     for (uint8_t i = POWER1_CTRL_SWITCH; i < POWER4_CTRL_SWITCH + 1; i++)
     {
         power_ctrl_on(i);
         delay_us(POWER_CTRL_ONE_BY_ONE_TIME);
     }
-    //Ò£¿ØÆ÷³õÊ¼»¯
+    //Ò£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½
     remote_control_init();
 }
