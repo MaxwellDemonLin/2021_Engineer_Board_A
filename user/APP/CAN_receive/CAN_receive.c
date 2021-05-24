@@ -265,6 +265,7 @@ static void CAN1_hook(CanRxMsg *rx_message)
     case CAN_RESCUE_M1_ID:
     {
         //处理电机数据宏函数
+
         get_motor_measure_ecd(&motor_rescue[0], rx_message);
         //记录时间
         DetectHook(RescueMotor1TOE);
@@ -336,17 +337,17 @@ static void CAN2_hook(CanRxMsg *rx_message)
 
 void get_motor_measure_ecd (motor_measure_t *motor_measure,CanRxMsg *rx_message)
 {
-    motor_measure->last_ecd=motor_measure->ecd;
-    motor_measure->ecd=(uint16_t)((rx_message)->Data[0] << 8 | (rx_message)->Data[1]);
-    motor_measure->speed_rpm = (uint16_t)((rx_message)->Data[2] << 8 | (rx_message)->Data[3]);
-    motor_measure->given_current = (uint16_t)((rx_message)->Data[4] << 8 | (rx_message)->Data[5]);
-    motor_measure->temperate = (rx_message)->Data[6];
-     if (motor_measure->ecd - motor_measure->last_ecd > Half_ecd_range)
-    {
-        motor_measure->count--;
-    }
-    else if (motor_measure->ecd - motor_measure->last_ecd < -Half_ecd_range)
-    {
-        motor_measure->count++;
-    }
+	motor_measure->last_ecd=motor_measure->ecd;
+	motor_measure->ecd=(uint16_t)((rx_message)->Data[0] << 8 | (rx_message)->Data[1]);
+	motor_measure->speed_rpm = (uint16_t)((rx_message)->Data[2] << 8 | (rx_message)->Data[3]);
+	motor_measure->given_current = (uint16_t)((rx_message)->Data[4] << 8 | (rx_message)->Data[5]);
+	motor_measure->temperate = (rx_message)->Data[6];
+	 if (motor_measure->ecd - motor_measure->last_ecd > Half_ecd_range)
+	{
+			motor_measure->count--;
+	}
+	else if (motor_measure->ecd - motor_measure->last_ecd < -Half_ecd_range)
+	{
+			motor_measure->count++;
+	}
 }
