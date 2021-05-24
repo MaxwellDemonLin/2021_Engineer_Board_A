@@ -2,6 +2,10 @@
 #include "remote_control.h"
 #include "pid.h"
 #include "CAN_receive.h"
+
+#include "FreeRTOSConfig.h"
+#include "FreeRTOS.h"
+#include "task.h"
 rescue_control_e rescue_control;
 
 void Rescue_init(rescue_control_e *rescue_init);
@@ -13,9 +17,11 @@ void Rescue_task(void *pvParameters)
     Rescue_init(&rescue_control);
     while (1)
     {
+		Rescue_cali(&rescue_control);
         Rescue_data_update(&rescue_control);
         Rescue_mode_set(&rescue_control);
         CAN_CMD_RESCUE(rescue_control.give_current[0], rescue_control.give_current[1]);
+		vTaskDelay(2);
     }
 }
 void Rescue_init(rescue_control_e *rescue_init)
@@ -27,6 +33,7 @@ void Rescue_init(rescue_control_e *rescue_init)
     rescue_init->rescue_RC = get_remote_control_point();
     rescue_init->rescue_motor_measure[0] = get_Rescue_Motor_Measure_Point(0);
     rescue_init->rescue_motor_measure[1] = get_Rescue_Motor_Measure_Point(0);
+		rescue_init->cali_step=0;
 
     PID_Init(&rescue_init->rescue_speed_pid[0], PID_DELTA, rescue_speed_pid, RESCUE_SPEED_MAX_OUT, RESCUE_SPEED_MAX_IOUT);
     PID_Init(&rescue_init->rescue_speed_pid[1], PID_DELTA, rescue_speed_pid, RESCUE_SPEED_MAX_OUT, RESCUE_SPEED_MAX_IOUT);
@@ -41,10 +48,9 @@ void Rescue_init(rescue_control_e *rescue_init)
 static void Rescue_cali(rescue_control_e *rescue_cali)
 {
     static uint16_t cali_time = 0;
-    static uint8_t cali_step = 0;
-    if (cali_step == 0)
+    if (rescue_cali->cali_step == 0)
     {
-        CAN_CMD_RESCUE(RESCUE_CALI_CURRENT, RESCUE_CALI_CURRENT);
+        CAN_CMD_RESCUE(-RESCUE_CALI_CURRENT, -RESCUE_CALI_CURRENT);
         if (rescue_cali->rescue_motor_measure[0]->ecd == rescue_cali->rescue_motor_measure[0]->last_ecd)
         {
             cali_time++;
@@ -55,10 +61,11 @@ static void Rescue_cali(rescue_control_e *rescue_cali)
             *(rescue_cali->rescue_position_set[1]->rescue_ecd_set->open_ecd_set) = rescue_cali->rescue_motor_measure[1]->ecd;
             rescue_cali->motor_count[0] = 0;
             rescue_cali->motor_count[1] = 0;
-            cali_step++;
+            rescue_cali->cali_step++;
+						cali_time=0;
         }
     }
-    if (cali_step == 1)
+    if (rescue_cali->cali_step == 1)
     {
         CAN_CMD_RESCUE(RESCUE_CALI_CURRENT, RESCUE_CALI_CURRENT);
         if (rescue_cali->rescue_motor_measure[0]->ecd == rescue_cali->rescue_motor_measure[0]->last_ecd)
@@ -69,7 +76,7 @@ static void Rescue_cali(rescue_control_e *rescue_cali)
         {
             *(rescue_cali->rescue_position_set[0]->rescue_ecd_set->close_ecd_set) = rescue_cali->motor_count[0] * 8191 + rescue_cali->rescue_motor_measure[0]->ecd;
             *(rescue_cali->rescue_position_set[1]->rescue_ecd_set->close_ecd_set) = rescue_cali->motor_count[1] * 8191 + rescue_cali->rescue_motor_measure[1]->ecd;
-            cali_step++;
+            rescue_cali->cali_step++;
         }
     }
 }
@@ -145,7 +152,7 @@ static void Rescue_control_PID(rescue_control_e *rescue_calc)
         if (rescue_calc->Claw_mode[i] == OPEN)
         {
             PID_Calc(rescue_calc->rescue_count_pid, (fp32)*rescue_calc->rescue_position_set[i]->rescue_ecd_set->open_ecd_set, rescue_calc->motor_sum_ecd[i]);
-            PID_Calc(rescue_calc->rescue_speed_pid,rescue_calc->rescue_motor_measure[i]->speed_rpm,rescue_calc->rescue_count_pid->out)
+            PID_Calc(rescue_calc->rescue_speed_pid,rescue_calc->rescue_motor_measure[i]->speed_rpm,rescue_calc->rescue_count_pid->out);
         }
         else if (rescue_calc->Claw_mode[i] == CLOSE)
         {

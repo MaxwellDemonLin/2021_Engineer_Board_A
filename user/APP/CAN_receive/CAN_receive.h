@@ -20,7 +20,7 @@
 #include "main.h"
 
 #define CHASSIS_CAN CAN2
-#define RESCUE_CAN  CAN2
+#define RESCUE_CAN  CAN1
 
 #define GIMBAL_CAN  CAN1
 #define LIFTER_CAN  CAN1
@@ -59,10 +59,13 @@ typedef struct
     int16_t given_current;
     uint8_t temperate;
     int16_t last_ecd;
+    int16_t count;
 } motor_measure_t;
 
 extern void CAN_CMD_CHASSIS_RESET_ID(void);
-
+//编码器范围 
+#define Half_ecd_range 4096
+#define ecd_range 8191
 //������̨�����������revΪ�����ֽ�
 extern void CAN_CMD_GIMBAL(int16_t yaw, int16_t pitch, int16_t shoot, int16_t rev);
 //���͵��̵����������

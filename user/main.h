@@ -44,7 +44,7 @@ typedef double fp64;
 #define TIM6_NVIC 4
 #define SPI5_RX_NVIC 5
 #define MPU_INT_NVIC 5
-
+#define KEY_NVIC 6
 #define Latitude_At_ShenZhen 22.57025f
 
 #ifndef NULL

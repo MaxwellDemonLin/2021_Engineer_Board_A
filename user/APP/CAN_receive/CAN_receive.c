@@ -25,7 +25,7 @@
 #include "task.h"
 
 #include "Detect_Task.h"
-
+static void get_motor_measure_ecd (motor_measure_t *motor_measure,CanRxMsg *rx_message);
 //底盘电机数据读取
 #define get_motor_measure(ptr, rx_message)                                                     \
     {                                                                                          \
@@ -265,7 +265,7 @@ static void CAN1_hook(CanRxMsg *rx_message)
     case CAN_RESCUE_M1_ID:
     {
         //处理电机数据宏函数
-        get_motor_measure(&motor_rescue[0], rx_message);
+        get_motor_measure_ecd(&motor_rescue[0], rx_message);
         //记录时间
         DetectHook(RescueMotor1TOE);
         break;
@@ -273,7 +273,7 @@ static void CAN1_hook(CanRxMsg *rx_message)
     case CAN_RESCUE_M2_ID:
     {
         //处理电机数据宏函数
-        get_motor_measure(&motor_rescue[1], rx_message);
+        get_motor_measure_ecd(&motor_rescue[1], rx_message);
         //记录时间
         DetectHook(RescueMotor2TOE);
         break;
@@ -292,38 +292,38 @@ static void CAN2_hook(CanRxMsg *rx_message)
     {
     case CAN_PIT_MOTOR_ID:
     {
-        get_gimbal_motor_measuer(&motor_pit, rx_message);
+        get_motor_measure_ecd(&motor_pit, rx_message);
         DetectHook(PitchGimbalMotorTOE);
         break;
     }
     case CAN_YAW_MOTOR_ID:
     {
 
-        get_gimbal_motor_measuer(&motor_yaw, rx_message);
+        get_motor_measure_ecd(&motor_yaw, rx_message);
         DetectHook(YawGimbalMotorTOE);
         break;
     }
     case CAN_LIFTER_M1_ID:
     {
-        get_motor_measure(&motor_lifter[0], rx_message);
+        get_motor_measure_ecd(&motor_lifter[0], rx_message);
         DetectHook(LifterMotor1TOE);
         break;
     }
     case CAN_LIFTER_M2_ID:
     {
-        get_motor_measure(&motor_lifter[1], rx_message);
+        get_motor_measure_ecd(&motor_lifter[1], rx_message);
         DetectHook(LifterMotor2TOE);
         break;
     }
     case CAN_CLAW_M1_ID:
     {
-        get_motor_measure(&motor_claw[0], rx_message);
+        get_motor_measure_ecd(&motor_claw[0], rx_message);
         DetectHook(ClawMotor1TOE);
         break;
     }
     case CAN_CLAW_M2_ID:
     {
-        get_motor_measure(&motor_claw[0], rx_message);
+        get_motor_measure_ecd(&motor_claw[0], rx_message);
         DetectHook(ClawMotor2TOE);
         break;
     }
@@ -331,5 +331,22 @@ static void CAN2_hook(CanRxMsg *rx_message)
     {
         break;
     }
+    }
+}
+
+void get_motor_measure_ecd (motor_measure_t *motor_measure,CanRxMsg *rx_message)
+{
+    motor_measure->last_ecd=motor_measure->ecd;
+    motor_measure->ecd=(uint16_t)((rx_message)->Data[0] << 8 | (rx_message)->Data[1]);
+    motor_measure->speed_rpm = (uint16_t)((rx_message)->Data[2] << 8 | (rx_message)->Data[3]);
+    motor_measure->given_current = (uint16_t)((rx_message)->Data[4] << 8 | (rx_message)->Data[5]);
+    motor_measure->temperate = (rx_message)->Data[6];
+     if (motor_measure->ecd - motor_measure->last_ecd > Half_ecd_range)
+    {
+        motor_measure->count--;
+    }
+    else if (motor_measure->ecd - motor_measure->last_ecd < -Half_ecd_range)
+    {
+        motor_measure->count++;
     }
 }

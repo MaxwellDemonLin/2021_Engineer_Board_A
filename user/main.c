@@ -32,12 +32,13 @@
 #include "rng.h"
 #include "sys.h"
 #include "timer.h"
+#include "exit_init.h"
 
 #include "FreeRTOSConfig.h"
 #include "FreeRTOS.h"
 #include "task.h"
 
-
+#include "CAN_Receive.h"
 #include "remote_control.h"
 #include "start_task.h"
 
@@ -45,13 +46,14 @@ void BSP_init(void);
 
 int main(void)
 {
-    BSP_init();
+   BSP_init();
     delay_ms(100);
     startTask();
     vTaskStartScheduler();
+		
     while (1)
     {
-        ;
+
     }
 }
 
@@ -82,6 +84,7 @@ void BSP_init(void)
     laser_configuration();
     //��ʱ��6 ��ʼ��
     TIM6_Init(60000, 90);
+		EXTI_Key_Config();
     //CAN�ӿڳ�ʼ��
     CAN1_mode_init(CAN_SJW_1tq, CAN_BS2_2tq, CAN_BS1_6tq, 5, CAN_Mode_Normal);
     CAN2_mode_init(CAN_SJW_1tq, CAN_BS2_2tq, CAN_BS1_6tq, 5, CAN_Mode_Normal);

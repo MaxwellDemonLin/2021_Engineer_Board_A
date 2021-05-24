@@ -42,17 +42,10 @@ void GPIOB_Exti8_GPIO_Init(void)
 static void NVIC_Configuration(void)
 {
   NVIC_InitTypeDef NVIC_InitStructure;
-  
-  /* 配置NVIC为优先级组1 */
-  NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
-  
-  /* 配置中断源：按键1 */
-  NVIC_InitStructure.NVIC_IRQChannel = KEY1_INT_EXTI_IRQ;
-  /* 配置抢占优先级：1 */
-  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
-  /* 配置子优先级：1 */
-  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
-  /* 使能中断通道 */
+
+	NVIC_InitStructure.NVIC_IRQChannel = KEY1_INT_EXTI_IRQ;
+  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = KEY_NVIC;
+  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x00;
   NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
   NVIC_Init(&NVIC_InitStructure);
   
@@ -60,7 +53,6 @@ static void NVIC_Configuration(void)
   NVIC_InitStructure.NVIC_IRQChannel = KEY2_INT_EXTI_IRQ;
   NVIC_Init(&NVIC_InitStructure);
 }
-
 
  /**
   * @brief  配置 PA0 为线中断口，并设置中断优先级

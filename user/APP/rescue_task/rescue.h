@@ -19,19 +19,19 @@ void Rescue_task(void *pvParameters);
 #define Half_ecd_range 4096
 #define ecd_range 8191
 //圈数PID
-#define RESCUE_COUNT_KP 20
+#define RESCUE_COUNT_KP 10
 #define RESCUE_COUNT_KI 0.01
 #define RESCUE_COUNT_KD 0
 #define RESCUE_COUNT_MAX_OUT 20000
 #define RESCUE_COUNT_MAX_IOUT 20000
 //编码器PID
-#define RESCUE_ECD_KP 20
+#define RESCUE_ECD_KP 10
 #define RESCUE_ECD_KI 0
 #define RESCUE_ECD_KD 0
 #define RESCUE_MAX_ECD_OUT 2000
 #define RESCUE_MAX_ECD_OUT 2000
 //校准电流
-#define RESCUE_CALI_CURRENT 3000
+#define RESCUE_CALI_CURRENT 400
 #define CALI_TIME 2000
 typedef enum
 {
@@ -62,6 +62,7 @@ typedef struct
     fp32 speed_set;
     uint16_t ecd_set[2];
     Claw_mode_e Claw_mode[2];
+		uint8_t cali_step;
     int16_t given_current[2];
     
     uint16_t motor_count_set[2];
