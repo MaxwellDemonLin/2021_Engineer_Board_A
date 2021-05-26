@@ -34,6 +34,15 @@ void GPIOB_Exti8_GPIO_Init(void)
     NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
     NVIC_Init(&NVIC_InitStructure);
 }
+
+
+
+
+
+
+
+
+
  /**
   * @brief  配置嵌套向量中断控制器NVIC
   * @param  无
@@ -61,65 +70,50 @@ static void NVIC_Configuration(void)
   */
 void EXTI_Key_Config(void)
 {
-	GPIO_InitTypeDef GPIO_InitStructure; 
-	EXTI_InitTypeDef EXTI_InitStructure;
-  
-	/*开启按键GPIO口的时钟*/
-	RCC_AHB1PeriphClockCmd(KEY1_INT_GPIO_CLK|KEY2_INT_GPIO_CLK ,ENABLE);
-  
-  /* 使能 SYSCFG 时钟 ，使用GPIO外部中断时必须使能SYSCFG时钟*/
-  RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
-  
-  /* 配置 NVIC */
-  NVIC_Configuration();
-  
-	/* 选择按键1的引脚 */ 
-  GPIO_InitStructure.GPIO_Pin = KEY1_INT_GPIO_PIN;
-  /* 设置引脚为输入模式 */ 
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;	    		
-  /* 设置引脚不上拉也不下拉 */
-  GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-  /* 使用上面的结构体初始化按键 */
-  GPIO_Init(KEY1_INT_GPIO_PORT, &GPIO_InitStructure); 
 
-	/* 连接 EXTI 中断源 到key1引脚 */
-  SYSCFG_EXTILineConfig(KEY1_INT_EXTI_PORTSOURCE,KEY1_INT_EXTI_PINSOURCE);
 
-  /* 选择 EXTI 中断源 */
-  EXTI_InitStructure.EXTI_Line = KEY1_INT_EXTI_LINE;
-  /* 中断模式 */
-  EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
-  /* 下降沿触发 */
-  EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising;  
-  /* 使能中断/事件线 */
-  EXTI_InitStructure.EXTI_LineCmd = ENABLE;
-  EXTI_Init(&EXTI_InitStructure);
-  
-  /* 选择按键2的引脚 */ 
-  GPIO_InitStructure.GPIO_Pin = KEY2_INT_GPIO_PIN;  
-  /* 其他配置与上面相同 */
-  GPIO_Init(KEY2_INT_GPIO_PORT, &GPIO_InitStructure);      
+	  NVIC_InitTypeDef NVIC_InitStructure;
+    EXTI_InitTypeDef EXTI_InitStructure;
+    GPIO_InitTypeDef GPIO_InitStructure;
 
-	/* 连接 EXTI 中断源 到key2 引脚 */
-  SYSCFG_EXTILineConfig(KEY2_INT_EXTI_PORTSOURCE,KEY2_INT_EXTI_PINSOURCE);
+    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
 
-  /* 选择 EXTI 中断源 */
-  EXTI_InitStructure.EXTI_Line = KEY2_INT_EXTI_LINE;
-  EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
-  /* 上升沿触发 */
-  EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling;  
-  EXTI_InitStructure.EXTI_LineCmd = ENABLE;
-  EXTI_Init(&EXTI_InitStructure);
+    SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOA, EXTI_PinSource4);
+
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
+    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
+
+    EXTI_InitStructure.EXTI_Line = EXTI_Line4;
+    EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
+    EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling;
+    EXTI_InitStructure.EXTI_LineCmd = ENABLE;
+    EXTI_Init(&EXTI_InitStructure);
+
+    NVIC_InitStructure.NVIC_IRQChannel = EXTI4_IRQn;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = KEY_NVIC;
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x00;
+    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+    NVIC_Init(&NVIC_InitStructure);
+
+
+
+
 }
 
 
-void EXTI0_IRQHandler(void)
+void EXTI4_IRQHandler(void)
+
 {
   //确保是否产生了EXTI Line中断
-	if(EXTI_GetITStatus(KEY1_INT_EXTI_LINE) != RESET) 
+	if(EXTI_GetITStatus(EXTI_Line4) != RESET) 
 	{
     rescue_control.close_flag[0]=1;
-		EXTI_ClearITPendingBit(KEY1_INT_EXTI_LINE);     
+		EXTI_ClearITPendingBit(EXTI_Line4);     
 	}  
 
 }

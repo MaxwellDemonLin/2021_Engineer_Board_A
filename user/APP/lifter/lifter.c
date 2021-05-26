@@ -1,45 +1,52 @@
 #include "lifter.h"
 #include "remote_control.h"
 #include "pid.h"
+
+#include "FreeRTOSConfig.h"
+#include "FreeRTOS.h"
+#include "task.h"
 Lift_control_e lift_control;
 void Lift_task_init(Lift_control_e *lift_control_init); //初始化函数
-void lift_rc_to_control_vector(fp32 *height, Lift_control_e *lift_rc_to_vector);
+void lift_rc_to_control_vector(int32_t *ecd, Lift_control_e *lift_rc_to_vector);
 static void lift_data_update(Lift_control_e *lift_update);
 static void lift_control_PID(Lift_control_e *lift_control);
 static void Lift_set_mode(Lift_control_e *lift_control_mode_set);
 static void Lift_set_mode(Lift_control_e *lift_control_mode_set);
 static void lift_set_height(Lift_control_e *lift_control_set_control);
+static void Lift_cali(Lift_control_e *Lift_cali);
 void Lift_task(void *pvParameters)
-{   
+{
 
     Lift_task_init(&lift_control);
     while (1)
     {
-        Lift_set_mode(&lift_control);
-        lift_set_height(&lift_control);
+        Lift_cali(&lift_control);
         lift_data_update(&lift_control);
-        lift_control_PID(&lift_control);
-
-        CAN_CMD_LIFTER(lift_control.given_current[0],lift_control.given_current[1]);
-
+        if (lift_control.cali_step == 2)
+        {
+            Lift_set_mode(&lift_control);
+            lift_set_height(&lift_control);
+            lift_control_PID(&lift_control);
+            CAN_CMD_LIFTER(lift_control.given_current[0], lift_control.given_current[1]);
+        }
         vTaskDelay(2);
-
     }
 }
 void Lift_task_init(Lift_control_e *lift_control_init)
-{   
-    fp32 lift_speed_pid[3]={LIFT_SPEED_KP,LIFT_SPEED_KI,LIFT_SPEED_KD};
-    fp32 lift_count_pid[3]={LIFT_COUNT_KP,LIFT_COUNT_KI,LIFT_COUNT_KD};
-    PID_Init(&lift_control_init->lift_speed_pid[0],PID_DELTA,lift_speed_pid,LIFT_SPEED_MAX_OUT,LIFT_SPEED_MAX_IOUT);
-    PID_Init(&lift_control_init->lift_speed_pid[1],PID_DELTA,lift_speed_pid,LIFT_SPEED_MAX_OUT,LIFT_SPEED_MAX_IOUT);
-    PID_Init(&lift_control_init->lift_height_pid[0],PID_DELTA,lift_count_pid,LIFT_COUNT_MAX_IOUT,LIFT_COUNT_MAX_IOUT);
-    PID_Init(&lift_control_init->lift_height_pid[1],PID_DELTA,lift_count_pid,LIFT_COUNT_MAX_IOUT,LIFT_COUNT_MAX_IOUT);
+{
+    fp32 lift_speed_pid[3] = {LIFT_SPEED_KP, LIFT_SPEED_KI, LIFT_SPEED_KD};
+    fp32 lift_count_pid[3] = {LIFT_COUNT_KP, LIFT_COUNT_KI, LIFT_COUNT_KD};
+    PID_Init(&lift_control_init->lift_speed_pid[0], PID_POSITION, lift_speed_pid, LIFT_SPEED_MAX_OUT, LIFT_SPEED_MAX_IOUT);
+    PID_Init(&lift_control_init->lift_speed_pid[1], PID_POSITION, lift_speed_pid, LIFT_SPEED_MAX_OUT, LIFT_SPEED_MAX_IOUT);
+    PID_Init(&lift_control_init->lift_height_pid[0], PID_POSITION, lift_count_pid, LIFT_COUNT_MAX_OUT, LIFT_COUNT_MAX_IOUT);
+    PID_Init(&lift_control_init->lift_height_pid[1], PID_POSITION, lift_count_pid, LIFT_COUNT_MAX_OUT, LIFT_COUNT_MAX_IOUT);
     lift_control_init->lift_RC = get_remote_control_point();
     lift_control_init->lift_motor_measure[0] = get_Lifter_Motor_Measure_Point(0);
 
     lift_control_init->lift_motor_measure[1] = get_Lifter_Motor_Measure_Point(1);
-    lift_control_init->height_set = 0;
+    lift_control_init->lift_mode = LIFT_EXCHANGE;
 }
+
 static void Lift_set_mode(Lift_control_e *lift_control_mode_set)
 {
     //计算遥控器的原始输入信号
@@ -73,15 +80,19 @@ static void Lift_set_mode(Lift_control_e *lift_control_mode_set)
                 lift_control_mode_set->lift_mode = LIFT_SMALL_RESOURCE_ISLAND;
                 time = 500;
             }
-            else if(lift_control_mode_set->lift_RC->key.v & DOWN_KEY)
+            else if (lift_control_mode_set->lift_RC->key.v & DOWN_KEY)
             {
                 lift_control_mode_set->lift_mode = LIFT_DOWN;
             }
         }
-        if (lift_control_mode_set->ecd_count[1] == lift_control_mode_set->motor_count_set && lift_control_mode_set->ecd_count[0] == lift_control_mode_set->motor_count_set)
+        if (lift_control_mode_set->ecd_count[1] == lift_control_mode_set->motor_count_set[1] && lift_control_mode_set->ecd_count[0] == lift_control_mode_set->motor_count_set[0])
         {
             lift_control_mode_set->lift_mode = LIFT_RAW;
         }
+    }
+    if (switch_is_up(lift_control_mode_set->lift_RC->rc.s[0]))
+    {
+        lift_control_mode_set->lift_mode = LIFT_RAW;
     }
     if (switch_is_down(lift_control_mode_set->lift_RC->rc.s[0]))
     {
@@ -92,72 +103,104 @@ static void Lift_set_mode(Lift_control_e *lift_control_mode_set)
 
 static void lift_set_height(Lift_control_e *lift_control_set_control)
 {
-    fp32 height_set;
+    
+    int32_t ecd_sum_set;
+		int32_t ecd_add;
     if (lift_control_set_control->lift_mode == LIFT_RAW)
     {
-        lift_rc_to_control_vector(&height_set, lift_control_set_control);
+        lift_rc_to_control_vector(&ecd_add, lift_control_set_control);
+        lift_control_set_control->ecd_sum_set[0] +=ecd_add;
+        lift_control_set_control->ecd_sum_set[1] -=ecd_add;
     }
     else if (lift_control_set_control->lift_mode == LIFT_LOOT)
     {
-        height_set = LOOT_HEIGHT;
+        lift_control_set_control->ecd_sum_set[0] = lift_control_set_control->down_sum_ecd[0] + LOOT_HEIGHT_ECD;
+				lift_control_set_control->ecd_sum_set[0] = lift_control_set_control->down_sum_ecd[1] - LOOT_HEIGHT_ECD;
     }
     else if (lift_control_set_control->lift_mode == LIFT_LARGE_RESOURCE_ISLAND)
     {
-        height_set = LARGE_ISLAND_HEIGHT;
+       lift_control_set_control->ecd_sum_set[0] = lift_control_set_control->down_sum_ecd[0]+LARGE_ISLAND_HEIGHT_ECD;
+			lift_control_set_control->ecd_sum_set[0] = lift_control_set_control->down_sum_ecd[1]-LARGE_ISLAND_HEIGHT_ECD;
     }
     else if (lift_control_set_control->lift_mode == LIFT_SMALL_RESOURCE_ISLAND)
     {
-        height_set = SMALL_ISLAND_HEIGHT;
+      lift_control_set_control->ecd_sum_set[0] = lift_control_set_control->down_sum_ecd [0]+ SMALL_ISLAND_HEIGHT_ECD;
+			lift_control_set_control->ecd_sum_set[0] = lift_control_set_control->down_sum_ecd[1]-SMALL_ISLAND_HEIGHT_ECD;
     }
     else if (lift_control_set_control->lift_mode == LIFT_EXCHANGE)
     {
-        height_set = EXCHANGE_HEIGHT;
+        lift_control_set_control->ecd_sum_set[0] = lift_control_set_control->down_sum_ecd [0]+ EXCHANGE_HEIGHT_ECD;
+        lift_control_set_control->ecd_sum_set[0] = lift_control_set_control->down_sum_ecd [1]- EXCHANGE_HEIGHT_ECD;
+    }
+    else if(lift_control_set_control->lift_mode==LIFT_DOWN)
+    {
+        lift_control_set_control->ecd_sum_set[0] = lift_control_set_control->down_sum_ecd[0] ;
+				lift_control_set_control->ecd_sum_set[0] = lift_control_set_control->down_sum_ecd[1] ;
     }
     else if (lift_control_set_control->lift_mode == LIFT_NO_FORCE)
     {
-        height_set = 0;
+        ecd_sum_set = 0;
     }
-    lift_control_set_control->height_set = height_set;
 }
-static void lift_rc_to_control_vector(fp32 *height, Lift_control_e *lift_rc_to_vector)
+static void lift_rc_to_control_vector(int32_t *ecd, Lift_control_e *lift_rc_to_vector)
 {
-    fp32 height_channel;
-    fp32 height_channel_add;
+    fp32 ecd_channel;
+    fp32 ecd_channel_add;
     //死区限制，因为遥控器可能存在差异 摇杆在中间，其值不为0
-    rc_deadline_limit(lift_rc_to_vector->lift_RC->rc.ch[1], height_channel, 10);
+    rc_deadline_limit(lift_rc_to_vector->lift_RC->rc.ch[3], ecd_channel, 10);
 
-    height_channel_add = -height_channel * LIFT_HEIGHT_RC_SEN;
-    *height = *height + height_channel_add;
+    *ecd = ecd_channel * LIFT_HEIGHT_RC_SEN;
 }
 static void lift_control_PID(Lift_control_e *lift_control)
 {
-    lift_control->motor_count_set = (lift_control->height_set / WHEEL_PERIMETER) * 19;
-    PID_Calc(&lift_control->lift_height_pid[0], lift_control->ecd_count[0], lift_control->motor_count_set);
-    PID_Calc(&lift_control->lift_height_pid[1], lift_control->ecd_count[1], lift_control->motor_count_set);
+////    lift_control->motor_count_set = lift_control->down_sum_ecd[0] + ((lift_control->ecd_sum_set / WHEEL_PERIMETER) * 19) * 8191;
+////    lift_control->motor_count_set = lift_control->down_sum_ecd[1] + ((lift_control->ecd_sum_set / WHEEL_PERIMETER) * 19) * 8191;
 
-    lift_control->given_current[0]=PID_Calc(&lift_control->lift_speed_pid[0], lift_control->lift_motor_measure[0]->speed_rpm, lift_control->lift_height_pid[0].out);
-    lift_control->given_current[1]=PID_Calc(&lift_control->lift_speed_pid[1], lift_control->lift_motor_measure[1]->speed_rpm, lift_control->lift_height_pid[1].out);
+//		lift_control->motor_count_set[0] = lift_control->down_sum_ecd[0]+160000;
+//    lift_control->motor_count_set[1] = lift_control->down_sum_ecd[1] -160000;
+//		
+    PID_Calc(&lift_control->lift_height_pid[0], lift_control->motor_sum_ecd[0], lift_control->ecd_sum_set[0]);
+    PID_Calc(&lift_control->lift_height_pid[1], lift_control->motor_sum_ecd[1], lift_control->ecd_sum_set[1]);
 
+    lift_control->given_current[0] = (int16_t)PID_Calc(&lift_control->lift_speed_pid[0], lift_control->lift_motor_measure[0]->speed_rpm, lift_control->lift_height_pid[0].out);
+    lift_control->given_current[1] = (int16_t)PID_Calc(&lift_control->lift_speed_pid[1], lift_control->lift_motor_measure[1]->speed_rpm, lift_control->lift_height_pid[1].out);
 }
 static void lift_data_update(Lift_control_e *lift_update)
 {
-    if (lift_update->lift_motor_measure[0]->ecd - lift_update->lift_motor_measure[0]->last_ecd > Half_ecd_range)
-    {
-        lift_update->motor_count[0]--;
-    }
-    else if (lift_update->lift_motor_measure[0]->ecd - lift_update->lift_motor_measure[0]->last_ecd < -Half_ecd_range)
-    {
-        lift_update->motor_count[0]++;
-    }
 
-
-    if (lift_update->lift_motor_measure[1]->ecd - lift_update->lift_motor_measure[1]->last_ecd > Half_ecd_range)
+    uint8_t i = 0;
+    for (i = 0; i <= 1; i++)
     {
-        lift_update->motor_count[1]--;
-    }
-    else if (lift_update->lift_motor_measure[1]->ecd - lift_update->lift_motor_measure[1]->last_ecd < -Half_ecd_range)
-    {
-        lift_update->motor_count[1]++;
+        if (lift_update->lift_motor_measure[i]->count >= 0)
+        {
+            lift_update->motor_sum_ecd[i] = lift_update->lift_motor_measure[i]->count * ecd_range + lift_update->lift_motor_measure[i]->ecd;
+        }
+        if (lift_update->lift_motor_measure[i]->count < 0)
+        {
+            lift_update->motor_sum_ecd[i] = lift_update->lift_motor_measure[i]->count * ecd_range + lift_update->lift_motor_measure[i]->ecd;
+        }
     }
 }
 
+static void Lift_cali(Lift_control_e *Lift_cali)
+{
+    static uint16_t cali_time = 0;
+    if (Lift_cali->cali_step == 0)
+    {
+        CAN_CMD_LIFTER(-LIFT_CALI_CURRENT_DOWN, LIFT_CALI_CURRENT_DOWN);
+        if (Lift_cali->lift_motor_measure[0]->ecd == Lift_cali->lift_motor_measure[0]->last_ecd)
+        {
+            cali_time++;
+        }
+        if (cali_time > CALI_TIME)
+        {
+            Lift_cali->down_sum_ecd[0] = Lift_cali->motor_sum_ecd[0];
+            Lift_cali->down_sum_ecd[1] = Lift_cali->motor_sum_ecd[1];
+						Lift_cali->ecd_sum_set[0]= Lift_cali->motor_sum_ecd[0];
+						Lift_cali->ecd_sum_set[1]= Lift_cali->motor_sum_ecd[1];
+            Lift_cali->cali_step+=2;
+            cali_time = 0;
+        }
+    }
+
+}

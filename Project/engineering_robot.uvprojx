@@ -868,6 +868,11 @@
               <FileType>1</FileType>
               <FilePath>..\user\APP\rescue_task\rescue.c</FilePath>
             </File>
+            <File>
+              <FileName>chassis_behaviour.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\user\APP\chassis_task\chassis_behaviour.c</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>

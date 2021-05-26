@@ -10,26 +10,21 @@ void Rescue_task(void *pvParameters);
 #define OPEN_COUNT
 #define RESCUE_KEY           KEY_PRESSED_OFFSET_R
 //速度PID
-#define RESCUE_SPEED_KP 3000
+#define RESCUE_SPEED_KP 30
 #define RESCUE_SPEED_KI 0
 #define RESCUE_SPEED_KD 0
-#define RESCUE_SPEED_MAX_OUT 20000
+#define RESCUE_SPEED_MAX_OUT 10000
 #define RESCUE_SPEED_MAX_IOUT 0
 //编码器范围 
 #define Half_ecd_range 4096
 #define ecd_range 8191
 //圈数PID
-#define RESCUE_COUNT_KP 10
-#define RESCUE_COUNT_KI 0.01
+#define RESCUE_COUNT_KP 0.035
+#define RESCUE_COUNT_KI 0
 #define RESCUE_COUNT_KD 0
-#define RESCUE_COUNT_MAX_OUT 20000
+#define RESCUE_COUNT_MAX_OUT 10000
 #define RESCUE_COUNT_MAX_IOUT 20000
-//编码器PID
-#define RESCUE_ECD_KP 10
-#define RESCUE_ECD_KI 0
-#define RESCUE_ECD_KD 0
-#define RESCUE_MAX_ECD_OUT 2000
-#define RESCUE_MAX_ECD_OUT 2000
+
 //校准电流
 #define RESCUE_CALI_CURRENT 400
 #define CALI_TIME 2000
@@ -56,6 +51,7 @@ typedef struct
     int32_t motor_count[2];
     int32_t open_ecd_set[2];
     int32_t close_ecd_set[2];
+
 } rescue_control_e;
 
 

@@ -262,24 +262,36 @@ static void CAN1_hook(CanRxMsg *rx_message)
         DetectHook(ChassisMotor1TOE + i);
         break;
     }
-    case CAN_RESCUE_M1_ID:
-    {
-        //处理电机数据宏函数
 
-        get_motor_measure_ecd(&motor_rescue[0], rx_message);
-        //记录时间
-        DetectHook(RescueMotor1TOE);
+		case CAN_LIFTER_M1_ID:
+    {
+        get_motor_measure_ecd(&motor_lifter[0], rx_message);
+        DetectHook(LifterMotor1TOE);
         break;
     }
-    case CAN_RESCUE_M2_ID:
+    case CAN_LIFTER_M2_ID:
     {
-        //处理电机数据宏函数
-        get_motor_measure_ecd(&motor_rescue[1], rx_message);
-        //记录时间
-        DetectHook(RescueMotor2TOE);
+        get_motor_measure_ecd(&motor_lifter[1], rx_message);
+        DetectHook(LifterMotor2TOE);
         break;
     }
+//		 case CAN_RESCUE_M1_ID:
+//    {
+//        //处理电机数据宏函数
 
+//        get_motor_measure_ecd(&motor_rescue[0], rx_message);
+//        //记录时间
+//        DetectHook(RescueMotor1TOE);
+//        break;
+//    }
+//    case CAN_RESCUE_M2_ID:
+//    {
+//        //处理电机数据宏函数
+//        get_motor_measure_ecd(&motor_rescue[1], rx_message);
+//        //记录时间
+//        DetectHook(RescueMotor2TOE);
+//        break;
+//    }
     default:
     {
         break;
@@ -304,18 +316,7 @@ static void CAN2_hook(CanRxMsg *rx_message)
         DetectHook(YawGimbalMotorTOE);
         break;
     }
-    case CAN_LIFTER_M1_ID:
-    {
-        get_motor_measure_ecd(&motor_lifter[0], rx_message);
-        DetectHook(LifterMotor1TOE);
-        break;
-    }
-    case CAN_LIFTER_M2_ID:
-    {
-        get_motor_measure_ecd(&motor_lifter[1], rx_message);
-        DetectHook(LifterMotor2TOE);
-        break;
-    }
+
     case CAN_CLAW_M1_ID:
     {
         get_motor_measure_ecd(&motor_claw[0], rx_message);
@@ -328,6 +329,23 @@ static void CAN2_hook(CanRxMsg *rx_message)
         DetectHook(ClawMotor2TOE);
         break;
     }
+//    case CAN_RESCUE_M1_ID:
+//    {
+//        //处理电机数据宏函数
+
+//        get_motor_measure_ecd(&motor_rescue[0], rx_message);
+//        //记录时间
+//        DetectHook(RescueMotor1TOE);
+//        break;
+//    }
+//    case CAN_RESCUE_M2_ID:
+//    {
+//        //处理电机数据宏函数
+//        get_motor_measure_ecd(&motor_rescue[1], rx_message);
+//        //记录时间
+//        DetectHook(RescueMotor2TOE);
+//        break;
+//    }
     default:
     {
         break;

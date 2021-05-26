@@ -19,7 +19,7 @@
 #define CANTASK_H
 #include "main.h"
 
-#define CHASSIS_CAN CAN2
+#define CHASSIS_CAN CAN1
 #define RESCUE_CAN  CAN1
 
 #define GIMBAL_CAN  CAN1
@@ -43,9 +43,11 @@ typedef enum
   CAN_PIT_MOTOR_ID = 0x206,
   CAN_GIMBAL_ALL_ID = 0x1FF,
 
-  CAN_GRAB_ALL_ID = 0x200,//CAN2
-  CAN_LIFTER_M1_ID = 0x201,
-  CAN_LIFTER_M2_ID = 0x202,
+  CAN_GRAB_ALL_ID = 0x1FF,//CAN1
+  CAN_LIFTER_M1_ID = 0x205,
+  CAN_LIFTER_M2_ID = 0x206,
+
+
   CAN_CLAW_M1_ID = 0x203,
   CAN_CLAW_M2_ID = 0x204,
 
