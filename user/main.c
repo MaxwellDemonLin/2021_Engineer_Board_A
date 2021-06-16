@@ -33,6 +33,8 @@
 #include "sys.h"
 #include "timer.h"
 #include "exit_init.h"
+#include "Cylinder_switch.h"   
+#include "pwm.h"
 
 #include "FreeRTOSConfig.h"
 #include "FreeRTOS.h"
@@ -82,8 +84,11 @@ void BSP_init(void)
     buzzer_init(30000, 90);
     //����IO��ʼ��
     laser_configuration();
+		Cylinder_GPIO_Config();
     //��ʱ��6 ��ʼ��
     TIM6_Init(60000, 90);
+		TIM2_Init(20000, 90);
+		TIM_SetCompare4(TIM2, 2400);
 		EXTI_Key_Config();
     //CAN�ӿڳ�ʼ��
     CAN1_mode_init(CAN_SJW_1tq, CAN_BS2_2tq, CAN_BS1_6tq, 5, CAN_Mode_Normal);

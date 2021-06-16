@@ -81,12 +81,12 @@ void EXTI_Key_Config(void)
 
     SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOA, EXTI_PinSource4);
 
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
-    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
-    GPIO_Init(GPIOB, &GPIO_InitStructure);
+//    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4;
+//    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
+//    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+//    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
+//    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+//    GPIO_Init(GPIOB, &GPIO_InitStructure);
 
     EXTI_InitStructure.EXTI_Line = EXTI_Line4;
     EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
@@ -95,13 +95,34 @@ void EXTI_Key_Config(void)
     EXTI_Init(&EXTI_InitStructure);
 
     NVIC_InitStructure.NVIC_IRQChannel = EXTI4_IRQn;
-    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = KEY_NVIC;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 3;
     NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x00;
     NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
     NVIC_Init(&NVIC_InitStructure);
 
 
 
+
+    SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOC, EXTI_PinSource0);
+
+//    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4;
+//    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
+//    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+//    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
+//    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+//    GPIO_Init(GPIOB, &GPIO_InitStructure);
+
+    EXTI_InitStructure.EXTI_Line = EXTI_Line0;
+    EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
+    EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling;
+    EXTI_InitStructure.EXTI_LineCmd = ENABLE;
+    EXTI_Init(&EXTI_InitStructure);
+
+    NVIC_InitStructure.NVIC_IRQChannel = EXTI0_IRQn;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x00;
+    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+    NVIC_Init(&NVIC_InitStructure);
 
 }
 
@@ -118,12 +139,12 @@ void EXTI4_IRQHandler(void)
 
 }
 
-void EXTI1_IRQHandler(void)
+void EXTI0_IRQHandler(void)
 {
   //确保是否产生了EXTI Line中断
-	if(EXTI_GetITStatus(KEY2_INT_EXTI_LINE) != RESET) 
+	if(EXTI_GetITStatus(EXTI_Line0) != RESET) 
 	{
     rescue_control.close_flag[1]=1;
-		EXTI_ClearITPendingBit(KEY2_INT_EXTI_LINE);     
+		EXTI_ClearITPendingBit(EXTI_Line0);     
 	}  
 }

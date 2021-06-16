@@ -1,11 +1,11 @@
 /**
   ****************************(C) COPYRIGHT 2016 DJI****************************
   * @file       can_receive.c/h
-  * @brief      完成can设备数据收发函数，该文件是通过can中断完成接收
-  * @note       该文件不是freeRTOS任务
+  * @brief      锟斤拷锟絚an锟借备锟斤拷锟斤拷锟秸凤拷锟斤拷锟斤拷锟斤拷锟斤拷锟侥硷拷锟斤拷通锟斤拷can锟叫讹拷锟斤拷山锟斤拷锟�
+  * @note       锟斤拷锟侥硷拷锟斤拷锟斤拷freeRTOS锟斤拷锟斤拷
   * @history
   *  Version    Date            Author          Modification
-  *  V1.0.0     Dec-26-2018     RM              1. 完成
+  *  V1.0.0     Dec-26-2018     RM              1. 锟斤拷锟�
   *
   @verbatim
   ==============================================================================
@@ -26,7 +26,7 @@
 
 #include "Detect_Task.h"
 static void get_motor_measure_ecd (motor_measure_t *motor_measure,CanRxMsg *rx_message);
-//底盘电机数据读取
+
 #define get_motor_measure(ptr, rx_message)                                                     \
     {                                                                                          \
         (ptr)->last_ecd = (ptr)->ecd;                                                          \
@@ -36,7 +36,7 @@ static void get_motor_measure_ecd (motor_measure_t *motor_measure,CanRxMsg *rx_m
         (ptr)->temperate = (rx_message)->Data[6];                                              \
     }
 
-//云台电机数据读取
+
 #define get_gimbal_motor_measuer(ptr, rx_message)                                              \
     {                                                                                          \
         (ptr)->last_ecd = (ptr)->ecd;                                                          \
@@ -49,7 +49,7 @@ static void get_motor_measure_ecd (motor_measure_t *motor_measure,CanRxMsg *rx_m
 
 static void CAN2_hook(CanRxMsg *rx_message);
 static void CAN1_hook(CanRxMsg *rx_message);
-//声明电机变量
+
 static motor_measure_t motor_yaw, motor_pit, motor_chassis[4],motor_lifter[2],motor_rescue[2],motor_claw[2];
 
 static CanTxMsg GIMBAL_TxMessage;
@@ -57,7 +57,7 @@ static CanTxMsg GIMBAL_TxMessage;
 #if GIMBAL_MOTOR_6020_CAN_LOSE_SLOVE
 static uint8_t delay_time = 100;
 #endif
-//can1中断
+
 void CAN1_RX0_IRQHandler(void)
 {
     static CanRxMsg rx1_message;
@@ -70,7 +70,7 @@ void CAN1_RX0_IRQHandler(void)
     }
 }
 
-//can2中断
+
 void CAN2_RX0_IRQHandler(void)
 {
     static CanRxMsg rx2_message;
@@ -88,7 +88,7 @@ void GIMBAL_lose_slove(void)
         delay_time = RNG_get_random_range(13,239);
 }
 #endif
-//发送云台控制命令，其中rev为保留字节
+
 void CAN_CMD_GIMBAL(int16_t yaw, int16_t pitch, int16_t shoot, int16_t rev)
 {
     GIMBAL_TxMessage.StdId = CAN_GIMBAL_ALL_ID;
@@ -128,7 +128,7 @@ void TIM6_DAC_IRQHandler(void)
         TIM_Cmd(TIM6,DISABLE);
     }
 }
-//CAN 发送 0x700的ID的数据，会引发M3508进入快速设置ID模式
+
 void CAN_CMD_CHASSIS_RESET_ID(void)
 {
 
@@ -149,7 +149,7 @@ void CAN_CMD_CHASSIS_RESET_ID(void)
     CAN_Transmit(CAN2, &TxMessage);
 }
 
-//发送底盘电机控制命令
+//锟斤拷锟酵碉拷锟教碉拷锟斤拷锟斤拷锟斤拷锟斤拷锟�
 void CAN_CMD_CHASSIS(int16_t motor1, int16_t motor2, int16_t motor3, int16_t motor4)
 {
     CanTxMsg TxMessage;
@@ -168,7 +168,7 @@ void CAN_CMD_CHASSIS(int16_t motor1, int16_t motor2, int16_t motor3, int16_t mot
 
     CAN_Transmit(CHASSIS_CAN, &TxMessage);
 }
-//升降电流发送函数
+//锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟酵猴拷锟斤拷
 void CAN_CMD_LIFTER(int16_t motor1, int16_t motor2)
 {
     CanTxMsg TxMessage;
@@ -183,11 +183,11 @@ void CAN_CMD_LIFTER(int16_t motor1, int16_t motor2)
 
     CAN_Transmit(LIFTER_CAN, &TxMessage);
 }
-//爪子电流发送函数
+//爪锟接碉拷锟斤拷锟斤拷锟酵猴拷锟斤拷
 void CAN_CMD_CLAW(int16_t motor1, int16_t motor2)
 {
     CanTxMsg TxMessage;
-    TxMessage.StdId = CAN_GRAB_ALL_ID;
+    TxMessage.StdId = 0x200;
     TxMessage.IDE = CAN_ID_STD;
     TxMessage.RTR = CAN_RTR_DATA;
     TxMessage.DLC = 0x08;
@@ -198,7 +198,7 @@ void CAN_CMD_CLAW(int16_t motor1, int16_t motor2)
 
     CAN_Transmit(CLAW_CAN, &TxMessage);
 }
-//救援电流发送函数
+//锟斤拷援锟斤拷锟斤拷锟斤拷锟酵猴拷锟斤拷
 void CAN_CMD_RESCUE(int16_t motor1, int16_t motor2)
 {
     CanTxMsg TxMessage;
@@ -213,37 +213,37 @@ void CAN_CMD_RESCUE(int16_t motor1, int16_t motor2)
 
     CAN_Transmit(RESCUE_CAN, &TxMessage);
 }
-//返回yaw电机变量地址，通过指针方式获取原始数据
+//锟斤拷锟斤拷yaw锟斤拷锟斤拷锟斤拷锟斤拷锟街凤拷锟酵拷锟街革拷敕绞斤拷锟饺≡硷拷锟斤拷锟�
 const motor_measure_t *get_Yaw_Gimbal_Motor_Measure_Point(void)
 {
     return &motor_yaw;
 }
-//返回pitch电机变量地址，通过指针方式获取原始数据
+//锟斤拷锟斤拷pitch锟斤拷锟斤拷锟斤拷锟斤拷锟街凤拷锟酵拷锟街革拷敕绞斤拷锟饺≡硷拷锟斤拷锟�
 const motor_measure_t *get_Pitch_Gimbal_Motor_Measure_Point(void)
 {
     return &motor_pit;
 }
-//返回底盘电机变量地址，通过指针方式获取原始数据
+//锟斤拷锟截碉拷锟教碉拷锟斤拷锟斤拷锟斤拷锟街凤拷锟酵拷锟街革拷敕绞斤拷锟饺≡硷拷锟斤拷锟�
 const motor_measure_t *get_Chassis_Motor_Measure_Point(uint8_t i)
 {
     return &motor_chassis[(i & 0x03)];
 }
-//返回升降电机变量地址，通过指针方式获取原始数据
+//锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟街凤拷锟酵拷锟街革拷敕绞斤拷锟饺≡硷拷锟斤拷锟�
 const motor_measure_t *get_Lifter_Motor_Measure_Point(uint8_t i)
 {
     return &motor_lifter[(i)];
 }
-//返回救援电机变量地址，通过指针的方式获取原始数据
+//锟斤拷锟截撅拷援锟斤拷锟斤拷锟斤拷锟斤拷锟街凤拷锟酵拷锟街革拷锟侥凤拷式锟斤拷取原始锟斤拷锟斤拷
 const motor_measure_t *get_Rescue_Motor_Measure_Point(uint8_t i)
 {
     return &motor_rescue[(i)];
 }
-//返回机械爪电机变量地址，通过指针的方式获取原始数据
+//锟斤拷锟截伙拷械爪锟斤拷锟斤拷锟斤拷锟斤拷锟街凤拷锟酵拷锟街革拷锟侥凤拷式锟斤拷取原始锟斤拷锟斤拷
 const motor_measure_t *get_Claw_Motor_Measure_Point(uint8_t i)
 {
     return &motor_claw[(i)];
 }
-//CAN1 接收处理函数 
+//CAN1 锟斤拷锟秸达拷锟斤拷锟斤拷锟斤拷 
 static void CAN1_hook(CanRxMsg *rx_message)
 {
     switch (rx_message->StdId)
@@ -254,11 +254,11 @@ static void CAN1_hook(CanRxMsg *rx_message)
     case CAN_3508_M4_ID:
     {
         static uint8_t i = 0;
-        //处理电机ID号
+        //锟斤拷锟斤拷锟斤拷锟絀D锟斤拷
         i = rx_message->StdId - CAN_3508_M1_ID;
-        //处理电机数据宏函数
+        //锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷莺旰拷锟�
         get_motor_measure(&motor_chassis[i], rx_message);
-        //记录时间
+        //锟斤拷录时锟斤拷
         DetectHook(ChassisMotor1TOE + i);
         break;
     }
@@ -275,30 +275,14 @@ static void CAN1_hook(CanRxMsg *rx_message)
         DetectHook(LifterMotor2TOE);
         break;
     }
-//		 case CAN_RESCUE_M1_ID:
-//    {
-//        //处理电机数据宏函数
-
-//        get_motor_measure_ecd(&motor_rescue[0], rx_message);
-//        //记录时间
-//        DetectHook(RescueMotor1TOE);
-//        break;
-//    }
-//    case CAN_RESCUE_M2_ID:
-//    {
-//        //处理电机数据宏函数
-//        get_motor_measure_ecd(&motor_rescue[1], rx_message);
-//        //记录时间
-//        DetectHook(RescueMotor2TOE);
-//        break;
-//    }
+		
     default:
     {
         break;
     }
     }
 }
-//CAN2 接收处理函数 
+//CAN2 锟斤拷锟秸达拷锟斤拷锟斤拷锟斤拷 
 static void CAN2_hook(CanRxMsg *rx_message)
 {
     switch (rx_message->StdId)
@@ -325,27 +309,22 @@ static void CAN2_hook(CanRxMsg *rx_message)
     }
     case CAN_CLAW_M2_ID:
     {
-        get_motor_measure_ecd(&motor_claw[0], rx_message);
+        get_motor_measure_ecd(&motor_claw[1], rx_message);
         DetectHook(ClawMotor2TOE);
         break;
     }
-//    case CAN_RESCUE_M1_ID:
-//    {
-//        //处理电机数据宏函数
-
-//        get_motor_measure_ecd(&motor_rescue[0], rx_message);
-//        //记录时间
-//        DetectHook(RescueMotor1TOE);
-//        break;
-//    }
-//    case CAN_RESCUE_M2_ID:
-//    {
-//        //处理电机数据宏函数
-//        get_motor_measure_ecd(&motor_rescue[1], rx_message);
-//        //记录时间
-//        DetectHook(RescueMotor2TOE);
-//        break;
-//    }
+		case CAN_RESCUE_M1_ID:
+		{
+				get_motor_measure_ecd(&motor_rescue[0], rx_message);
+        DetectHook(ClawMotor2TOE);
+        break;
+		}
+		case CAN_RESCUE_M2_ID:
+		{
+				get_motor_measure_ecd(&motor_rescue[1], rx_message);
+        DetectHook(ClawMotor2TOE);
+        break;
+		}
     default:
     {
         break;

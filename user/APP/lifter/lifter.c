@@ -6,13 +6,13 @@
 #include "FreeRTOS.h"
 #include "task.h"
 Lift_control_e lift_control;
-void Lift_task_init(Lift_control_e *lift_control_init); //初始化函数
+void Lift_task_init(Lift_control_e *lift_control_init); //初始化函�?
 void lift_rc_to_control_vector(int32_t *ecd, Lift_control_e *lift_rc_to_vector);
 static void lift_data_update(Lift_control_e *lift_update);
 static void lift_control_PID(Lift_control_e *lift_control);
 static void Lift_set_mode(Lift_control_e *lift_control_mode_set);
 static void Lift_set_mode(Lift_control_e *lift_control_mode_set);
-static void lift_set_height(Lift_control_e *lift_control_set_control);
+//static void lift_set_height(Lift_control_e *lift_control_set_control);
 static void Lift_cali(Lift_control_e *Lift_cali);
 void Lift_task(void *pvParameters)
 {
@@ -22,12 +22,18 @@ void Lift_task(void *pvParameters)
     {
         Lift_cali(&lift_control);
         lift_data_update(&lift_control);
-        if (lift_control.cali_step == 2)
+        if (lift_control.cali_step == 1)
         {
             Lift_set_mode(&lift_control);
-            lift_set_height(&lift_control);
             lift_control_PID(&lift_control);
-            CAN_CMD_LIFTER(lift_control.given_current[0], lift_control.given_current[1]);
+            if (lift_control.lift_mode != LIFT_NO_FORCE)
+            {
+                CAN_CMD_LIFTER(lift_control.given_current[0], lift_control.given_current[1]);
+            }
+            else if (lift_control.lift_mode == LIFT_NO_FORCE)
+            {
+                CAN_CMD_LIFTER(0, 0);
+            }
         }
         vTaskDelay(2);
     }
@@ -49,116 +55,166 @@ void Lift_task_init(Lift_control_e *lift_control_init)
 
 static void Lift_set_mode(Lift_control_e *lift_control_mode_set)
 {
+    int32_t ecd_sum_set;
+    int32_t ecd_add;
+
     //计算遥控器的原始输入信号
     static uint16_t time = 500;
+    static uint16_t cali_time = 0;
     if (time)
     {
         time--;
     }
-    if (switch_is_mid(lift_control_mode_set->lift_RC->rc.s[0]))
+    if (switch_is_up(lift_control_mode_set->lift_RC->rc.s[0]))
     {
         if (!time)
-        { //判断是否要摇摆
+        { //判断是否要摇�?
 
             if ((lift_control_mode_set->lift_RC->key.v & EXCHANGE_KEY))
             {
                 lift_control_mode_set->lift_mode = LIFT_EXCHANGE;
+                lift_control_mode_set->ecd_sum_set[0] = lift_control_mode_set->down_sum_ecd[0] + EXCHANGE_HEIGHT_ECD;
+                lift_control_mode_set->ecd_sum_set[1] = lift_control_mode_set->down_sum_ecd[1] - EXCHANGE_HEIGHT_ECD;
                 time = 500;
             }
             else if ((lift_control_mode_set->lift_RC->key.v & LOOT_KEY))
             {
                 lift_control_mode_set->lift_mode = LIFT_LOOT;
+                lift_control_mode_set->ecd_sum_set[0] = lift_control_mode_set->down_sum_ecd[0] + LOOT_HEIGHT_ECD;
+                lift_control_mode_set->ecd_sum_set[1] = lift_control_mode_set->down_sum_ecd[1] - LOOT_HEIGHT_ECD;
                 time = 500;
             }
             else if ((lift_control_mode_set->lift_RC->key.v & LARGE_ISLAND_KEY))
             {
                 lift_control_mode_set->lift_mode = LIFT_LARGE_RESOURCE_ISLAND;
+                lift_control_mode_set->ecd_sum_set[0] = lift_control_mode_set->down_sum_ecd[0] + LARGE_ISLAND_HEIGHT_ECD;
+                lift_control_mode_set->ecd_sum_set[1] = lift_control_mode_set->down_sum_ecd[1] - LARGE_ISLAND_HEIGHT_ECD;
                 time = 500;
             }
             else if ((lift_control_mode_set->lift_RC->key.v & SMALL_ISLAND_KEY))
             {
                 lift_control_mode_set->lift_mode = LIFT_SMALL_RESOURCE_ISLAND;
+                lift_control_mode_set->ecd_sum_set[0] = lift_control_mode_set->down_sum_ecd[0] + SMALL_ISLAND_HEIGHT_ECD;
+                lift_control_mode_set->ecd_sum_set[1] = lift_control_mode_set->down_sum_ecd[1] - SMALL_ISLAND_HEIGHT_ECD;
                 time = 500;
             }
             else if (lift_control_mode_set->lift_RC->key.v & DOWN_KEY)
             {
                 lift_control_mode_set->lift_mode = LIFT_DOWN;
+                lift_control_mode_set->ecd_sum_set[0] = lift_control_mode_set->down_sum_ecd[0];
+                lift_control_mode_set->ecd_sum_set[1] = lift_control_mode_set->down_sum_ecd[1];
+                time = 500;
+            }
+
+
+            if (lift_control_mode_set->lift_RC->key.v & RAW_UP_KEY)
+            {
+                lift_control_mode_set->ecd_sum_set[0] += KEY_CHANGE_VALUE;
+                lift_control_mode_set->ecd_sum_set[1] -= KEY_CHANGE_VALUE;
+            }
+            else if (lift_control_mode_set->lift_RC->key.v & RAW_DOWN_KEY)
+            {
+                lift_control_mode_set->ecd_sum_set[0] -= KEY_CHANGE_VALUE;
+                lift_control_mode_set->ecd_sum_set[1] += KEY_CHANGE_VALUE;
+            }
+
+
+
+
+            if (lift_control_mode_set->lift_RC->key.v & RAW_DOWN_KEY && lift_control_mode_set->lift_RC->key.v & RAW_UP_KEY)
+            {
+                cali_time++;
+            }
+            if (!(lift_control_mode_set->lift_RC->key.v & RAW_DOWN_KEY && lift_control_mode_set->lift_RC->key.v & RAW_UP_KEY))
+            {
+                cali_time = 0;
+            }
+            if (cali_time == 1000)
+            {
+                lift_control_mode_set->cali_step = 0;
+                lift_control_mode_set->lift_mode = LIFT_CALI;
+                cali_time = 0;
             }
         }
-        if (lift_control_mode_set->ecd_count[1] == lift_control_mode_set->motor_count_set[1] && lift_control_mode_set->ecd_count[0] == lift_control_mode_set->motor_count_set[0])
-        {
-            lift_control_mode_set->lift_mode = LIFT_RAW;
-        }
     }
-    if (switch_is_up(lift_control_mode_set->lift_RC->rc.s[0]))
+    if (switch_is_mid(lift_control_mode_set->lift_RC->rc.s[0]))
     {
         lift_control_mode_set->lift_mode = LIFT_RAW;
+        lift_rc_to_control_vector(&ecd_add, lift_control_mode_set);
+				
+        lift_control_mode_set->ecd_sum_set[0] += ecd_add;
+        lift_control_mode_set->ecd_sum_set[1] -= ecd_add;
+				if (lift_control_mode_set->lift_RC->key.v & RAW_UP_KEY)
+            {
+                lift_control_mode_set->ecd_sum_set[0] += KEY_CHANGE_VALUE;
+                lift_control_mode_set->ecd_sum_set[1] -= KEY_CHANGE_VALUE;
+            }
+        else if (lift_control_mode_set->lift_RC->key.v & RAW_DOWN_KEY)
+            {
+                lift_control_mode_set->ecd_sum_set[0] -= KEY_CHANGE_VALUE;
+                lift_control_mode_set->ecd_sum_set[1] += KEY_CHANGE_VALUE;
+            }
     }
     if (switch_is_down(lift_control_mode_set->lift_RC->rc.s[0]))
     {
         lift_control_mode_set->lift_mode = LIFT_NO_FORCE;
+        lift_control_mode_set->ecd_sum_set[0] = lift_control_mode_set->down_sum_ecd[0]; //为了防止有力无力切换时上升发生抖动，因此将设定值设置为0
+        lift_control_mode_set->ecd_sum_set[1] = lift_control_mode_set->down_sum_ecd[1];
     }
 }
 //设置上升高度
 
-static void lift_set_height(Lift_control_e *lift_control_set_control)
+/*static void lift_set_height(Lift_control_e *lift_control_set_control)
 {
-    
+
     int32_t ecd_sum_set;
-		int32_t ecd_add;
+    int32_t ecd_add;
     if (lift_control_set_control->lift_mode == LIFT_RAW)
     {
         lift_rc_to_control_vector(&ecd_add, lift_control_set_control);
-        lift_control_set_control->ecd_sum_set[0] +=ecd_add;
-        lift_control_set_control->ecd_sum_set[1] -=ecd_add;
+        lift_control_set_control->ecd_sum_set[0] += ecd_add;
+        lift_control_set_control->ecd_sum_set[1] -= ecd_add;
     }
-    else if (lift_control_set_control->lift_mode == LIFT_LOOT)
+    if (lift_control_set_control->lift_mode == LIFT_LOOT)
     {
         lift_control_set_control->ecd_sum_set[0] = lift_control_set_control->down_sum_ecd[0] + LOOT_HEIGHT_ECD;
-				lift_control_set_control->ecd_sum_set[0] = lift_control_set_control->down_sum_ecd[1] - LOOT_HEIGHT_ECD;
+        lift_control_set_control->ecd_sum_set[0] = lift_control_set_control->down_sum_ecd[1] - LOOT_HEIGHT_ECD;
     }
     else if (lift_control_set_control->lift_mode == LIFT_LARGE_RESOURCE_ISLAND)
     {
-       lift_control_set_control->ecd_sum_set[0] = lift_control_set_control->down_sum_ecd[0]+LARGE_ISLAND_HEIGHT_ECD;
-			lift_control_set_control->ecd_sum_set[0] = lift_control_set_control->down_sum_ecd[1]-LARGE_ISLAND_HEIGHT_ECD;
+        lift_control_set_control->ecd_sum_set[0] = lift_control_set_control->down_sum_ecd[0] + LARGE_ISLAND_HEIGHT_ECD;
+        lift_control_set_control->ecd_sum_set[0] = lift_control_set_control->down_sum_ecd[1] - LARGE_ISLAND_HEIGHT_ECD;
     }
     else if (lift_control_set_control->lift_mode == LIFT_SMALL_RESOURCE_ISLAND)
     {
-      lift_control_set_control->ecd_sum_set[0] = lift_control_set_control->down_sum_ecd [0]+ SMALL_ISLAND_HEIGHT_ECD;
-			lift_control_set_control->ecd_sum_set[0] = lift_control_set_control->down_sum_ecd[1]-SMALL_ISLAND_HEIGHT_ECD;
+        lift_control_set_control->ecd_sum_set[0] = lift_control_set_control->down_sum_ecd[0] + SMALL_ISLAND_HEIGHT_ECD;
+        lift_control_set_control->ecd_sum_set[0] = lift_control_set_control->down_sum_ecd[1] - SMALL_ISLAND_HEIGHT_ECD;
     }
     else if (lift_control_set_control->lift_mode == LIFT_EXCHANGE)
     {
-        lift_control_set_control->ecd_sum_set[0] = lift_control_set_control->down_sum_ecd [0]+ EXCHANGE_HEIGHT_ECD;
-        lift_control_set_control->ecd_sum_set[0] = lift_control_set_control->down_sum_ecd [1]- EXCHANGE_HEIGHT_ECD;
+        lift_control_set_control->ecd_sum_set[0] = lift_control_set_control->down_sum_ecd[0] + EXCHANGE_HEIGHT_ECD;
+        lift_control_set_control->ecd_sum_set[0] = lift_control_set_control->down_sum_ecd[1] - EXCHANGE_HEIGHT_ECD;
     }
-    else if(lift_control_set_control->lift_mode==LIFT_DOWN)
+    else if (lift_control_set_control->lift_mode == LIFT_DOWN)
     {
-        lift_control_set_control->ecd_sum_set[0] = lift_control_set_control->down_sum_ecd[0] ;
-				lift_control_set_control->ecd_sum_set[0] = lift_control_set_control->down_sum_ecd[1] ;
+        lift_control_set_control->ecd_sum_set[0] = lift_control_set_control->down_sum_ecd[0];
+        lift_control_set_control->ecd_sum_set[0] = lift_control_set_control->down_sum_ecd[1];
     }
     else if (lift_control_set_control->lift_mode == LIFT_NO_FORCE)
     {
         ecd_sum_set = 0;
     }
-}
+}*/
 static void lift_rc_to_control_vector(int32_t *ecd, Lift_control_e *lift_rc_to_vector)
 {
     fp32 ecd_channel;
-    fp32 ecd_channel_add;
-    //死区限制，因为遥控器可能存在差异 摇杆在中间，其值不为0
-    rc_deadline_limit(lift_rc_to_vector->lift_RC->rc.ch[3], ecd_channel, 10);
 
+    rc_deadline_limit(lift_rc_to_vector->lift_RC->rc.ch[3], ecd_channel, 10);
+    
     *ecd = ecd_channel * LIFT_HEIGHT_RC_SEN;
 }
 static void lift_control_PID(Lift_control_e *lift_control)
 {
-////    lift_control->motor_count_set = lift_control->down_sum_ecd[0] + ((lift_control->ecd_sum_set / WHEEL_PERIMETER) * 19) * 8191;
-////    lift_control->motor_count_set = lift_control->down_sum_ecd[1] + ((lift_control->ecd_sum_set / WHEEL_PERIMETER) * 19) * 8191;
-
-//		lift_control->motor_count_set[0] = lift_control->down_sum_ecd[0]+160000;
-//    lift_control->motor_count_set[1] = lift_control->down_sum_ecd[1] -160000;
-//		
     PID_Calc(&lift_control->lift_height_pid[0], lift_control->motor_sum_ecd[0], lift_control->ecd_sum_set[0]);
     PID_Calc(&lift_control->lift_height_pid[1], lift_control->motor_sum_ecd[1], lift_control->ecd_sum_set[1]);
 
@@ -196,11 +252,10 @@ static void Lift_cali(Lift_control_e *Lift_cali)
         {
             Lift_cali->down_sum_ecd[0] = Lift_cali->motor_sum_ecd[0];
             Lift_cali->down_sum_ecd[1] = Lift_cali->motor_sum_ecd[1];
-						Lift_cali->ecd_sum_set[0]= Lift_cali->motor_sum_ecd[0];
-						Lift_cali->ecd_sum_set[1]= Lift_cali->motor_sum_ecd[1];
-            Lift_cali->cali_step+=2;
+            Lift_cali->ecd_sum_set[0] = Lift_cali->motor_sum_ecd[0];
+            Lift_cali->ecd_sum_set[1] = Lift_cali->motor_sum_ecd[1];
+            Lift_cali->cali_step++;
             cali_time = 0;
         }
     }
-
 }

@@ -28,6 +28,10 @@
 #include "chassis_task.h"
 #include "lifter.h"
 #include "rescue.h"
+#include "claw_task.h"
+
+#include "Cylinder_switch.h"
+
 #define INS_TASK_PRIO 20
 #define INS_TASK_SIZE 512
 static TaskHandle_t INSTask_Handler;
@@ -63,6 +67,16 @@ static TaskHandle_t RescueTask_Handler;
 #define Lift_TASK_PRIO 14
 #define Lift_STK_SIZE 512
 static TaskHandle_t LiftTask_Handler;
+
+#define CLAW_TASK_PRIO  15
+#define Claw_STK_SIZE 512
+static TaskHandle_t ClawTask_Handler;
+
+
+#define Cylinder_TASK_PRIO  15
+#define Cylinder_STK_SIZE 512
+static TaskHandle_t Cylinder_Task_Handler;
+
 void start_task(void *pvParameters)
 {
     taskENTER_CRITICAL();
@@ -75,7 +89,6 @@ void start_task(void *pvParameters)
 
 void startTask(void)
 {
-
     xTaskCreate((TaskFunction_t)INSTask,
                 (const char *)"INSTask",
                 (uint16_t)INS_TASK_SIZE,
@@ -101,15 +114,27 @@ void startTask(void)
                 (UBaseType_t)Detect_TASK_PRIO,
                 (TaskHandle_t *)&DetectTask_Handler);
     xTaskCreate((TaskFunction_t)Rescue_task,
-                (const char *)"DetectTask",
+                (const char *)"RescueTask",
                 (uint16_t)Detect_STK_SIZE,
                 (void *)NULL,
                 (UBaseType_t)Rescue_TASK_PRIO,
-                (TaskHandle_t *)&DetectTask_Handler);
+                (TaskHandle_t *)&RescueTask_Handler);
     xTaskCreate((TaskFunction_t)Lift_task,
-                (const char *)"DetectTask",
+                (const char *)"LiftTask",
                 (uint16_t)Detect_STK_SIZE,
                 (void *)NULL,
                 (UBaseType_t)Lift_TASK_PRIO,
-                (TaskHandle_t *)&DetectTask_Handler);
+                (TaskHandle_t *)&LiftTask_Handler);
+    xTaskCreate((TaskFunction_t)Claw_task,
+                (const char *)"ClawTask",
+                (uint16_t)Detect_STK_SIZE,
+                (void *)NULL,
+                (UBaseType_t)CLAW_TASK_PRIO,
+                (TaskHandle_t *)&ClawTask_Handler); 
+		xTaskCreate((TaskFunction_t)Cylinder_task,
+                (const char *)"CylinderTask",
+                (uint16_t)Cylinder_STK_SIZE,
+                (void *)NULL,
+                (UBaseType_t)Cylinder_TASK_PRIO,
+                (TaskHandle_t *)&Cylinder_Task_Handler); 
 }

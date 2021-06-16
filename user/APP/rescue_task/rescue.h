@@ -11,22 +11,22 @@ void Rescue_task(void *pvParameters);
 #define RESCUE_KEY           KEY_PRESSED_OFFSET_R
 //速度PID
 #define RESCUE_SPEED_KP 30
-#define RESCUE_SPEED_KI 0
+#define RESCUE_SPEED_KI 0.001
 #define RESCUE_SPEED_KD 0
-#define RESCUE_SPEED_MAX_OUT 10000
-#define RESCUE_SPEED_MAX_IOUT 0
+#define RESCUE_SPEED_MAX_OUT 8000
+#define RESCUE_SPEED_MAX_IOUT 800
 //编码器范围 
 #define Half_ecd_range 4096
 #define ecd_range 8191
 //圈数PID
-#define RESCUE_COUNT_KP 0.035
+#define RESCUE_COUNT_KP 0.028
 #define RESCUE_COUNT_KI 0
 #define RESCUE_COUNT_KD 0
 #define RESCUE_COUNT_MAX_OUT 10000
 #define RESCUE_COUNT_MAX_IOUT 20000
 
 //校准电流
-#define RESCUE_CALI_CURRENT 400
+#define RESCUE_CALI_CURRENT 2000
 #define CALI_TIME 2000
 typedef enum
 {
