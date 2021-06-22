@@ -5,7 +5,7 @@
   * @note       
   * @history
   *  Version    Date            Author          Modification
-  *  V1.0.0     Dec-26-2018     RM              1. ï¿½ï¿½ï¿½
+  *  V1.0.0     Dec-26-2018     RM              1. ï¿½ï¿½ï¿?
   *
   @verbatim
   ==============================================================================
@@ -29,7 +29,7 @@
 #include "lifter.h"
 #include "rescue.h"
 #include "claw_task.h"
-
+#include "gimbal_task.h"
 #include "Cylinder_switch.h"
 
 #define INS_TASK_PRIO 20
@@ -76,6 +76,10 @@ static TaskHandle_t ClawTask_Handler;
 #define Cylinder_TASK_PRIO  15
 #define Cylinder_STK_SIZE 512
 static TaskHandle_t Cylinder_Task_Handler;
+
+#define GIMBAL_TASK_PRIO  6
+#define GIMBAL_STK_SIZE 512
+static TaskHandle_t Gimbal_Task_Handler;
 
 void start_task(void *pvParameters)
 {
@@ -137,4 +141,11 @@ void startTask(void)
                 (void *)NULL,
                 (UBaseType_t)Cylinder_TASK_PRIO,
                 (TaskHandle_t *)&Cylinder_Task_Handler); 
+    xTaskCreate((TaskFunction_t)Gimbal_Task,
+                (const char *)"GimbalTask",
+                (uint16_t)GIMBAL_STK_SIZE,
+                (void *)NULL,
+                (UBaseType_t)GIMBAL_TASK_PRIO,
+                (TaskHandle_t *)&Gimbal_Task_Handler); 
+    
 }

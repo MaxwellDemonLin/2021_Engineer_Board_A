@@ -1,11 +1,11 @@
 /**
   ****************************(C) COPYRIGHT 2016 DJI****************************
   * @file       can_receive.c/h
-  * @brief      ���can�豸�����շ����������ļ���ͨ��can�ж���ɽ���
+  * @brief      ���can�豸�����շ����������ļ���ͨ��can�ж���ɽ���?
   * @note       ���ļ�����freeRTOS����
   * @history
   *  Version    Date            Author          Modification
-  *  V1.0.0     Dec-26-2018     RM              1. ���
+  *  V1.0.0     Dec-26-2018     RM              1. ���?
   *
   @verbatim
   ==============================================================================
@@ -67,11 +67,11 @@ typedef struct
 } motor_measure_t;
 
 extern void CAN_CMD_CHASSIS_RESET_ID(void);
-//编码器范围 
+//编码器范�? 
 #define Half_ecd_range 4096
 #define ecd_range 8191
 
-extern void CAN_CMD_GIMBAL(int16_t yaw, int16_t pitch, int16_t shoot, int16_t rev);
+extern void CAN_CMD_GIMBAL(int16_t yaw, int16_t pitch);
 
 extern void CAN_CMD_CHASSIS(int16_t motor1, int16_t motor2, int16_t motor3, int16_t motor4);
 

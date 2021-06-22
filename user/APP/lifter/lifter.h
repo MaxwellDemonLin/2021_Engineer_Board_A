@@ -9,7 +9,7 @@
 void Lift_task(void *pvParameters);
 
 #define WHEEL_PERIMETER  0.43f  //cm
-//底盘摇摆按键
+
 //#define RAW_KEY           KEY_PRESSED_OFFSET_R
 #define LARGE_ISLAND_KEY  KEY_PRESSED_OFFSET_Z
 #define SMALL_ISLAND_KEY  KEY_PRESSED_OFFSET_X
@@ -18,26 +18,26 @@ void Lift_task(void *pvParameters);
 #define DOWN_KEY          KEY_PRESSED_OFFSET_C
 #define RAW_UP_KEY        KEY_PRESSED_OFFSET_SHIFT
 #define RAW_DOWN_KEY      KEY_PRESSED_OFFSET_CTRL 
-//遥控器和高度转化比例
+
 #define LIFT_HEIGHT_RC_SEN 0.4f
-//键盘原生模式上升下降
+
 #define KEY_CHANGE_VALUE  150
-//上升高度
+
 #define LOOT_HEIGHT_ECD           10000
 #define LARGE_ISLAND_HEIGHT_ECD   16000
 #define SMALL_ISLAND_HEIGHT_ECD   10000
 #define EXCHANGE_HEIGHT_ECD       10000
-//编码器范围 
+
 #define Half_ecd_range 4096
 #define ecd_range 8191
-//速度PID
+
 #define LIFT_SPEED_KP 15
 #define LIFT_SPEED_KI 0
 #define LIFT_SPEED_KD 0
 #define LIFT_SPEED_MAX_OUT 10000
 #define LIFT_SPEED_MAX_IOUT 0
 
-//圈数PID
+
 #define LIFT_COUNT_KP 0.03
 #define LIFT_COUNT_KI 0.0
 #define LIFT_COUNT_KD 0
@@ -45,11 +45,11 @@ void Lift_task(void *pvParameters);
 #define LIFT_COUNT_MAX_IOUT 5
 
 
-//校准电流
+
 #define LIFT_CALI_CURRENT_DOWN   500 
 #define LIFT_CALI_CURRENT_UP		 500
 #define CALI_TIME 600
-//死区限制
+
 #define rc_deadline_limit(input, output, dealine)        \
     {                                                    \
         if ((input) > (dealine) || (input) < -(dealine)) \

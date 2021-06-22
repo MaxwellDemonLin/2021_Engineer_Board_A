@@ -1,11 +1,11 @@
 /**
   ****************************(C) COPYRIGHT 2016 DJI****************************
   * @file       can_receive.c/h
-  * @brief      锟斤拷锟絚an锟借备锟斤拷锟斤拷锟秸凤拷锟斤拷锟斤拷锟斤拷锟斤拷锟侥硷拷锟斤拷通锟斤拷can锟叫讹拷锟斤拷山锟斤拷锟�
+  * @brief      锟斤拷锟絚an锟借备锟斤拷锟斤拷锟秸凤拷锟斤拷锟斤拷锟斤拷锟斤拷锟侥硷拷锟斤拷通锟斤拷can锟叫讹拷锟斤拷山锟斤拷锟?1?7
   * @note       锟斤拷锟侥硷拷锟斤拷锟斤拷freeRTOS锟斤拷锟斤拷
   * @history
   *  Version    Date            Author          Modification
-  *  V1.0.0     Dec-26-2018     RM              1. 锟斤拷锟�
+  *  V1.0.0     Dec-26-2018     RM              1. 锟斤拷锟?1?7
   *
   @verbatim
   ==============================================================================
@@ -89,7 +89,7 @@ void GIMBAL_lose_slove(void)
 }
 #endif
 
-void CAN_CMD_GIMBAL(int16_t yaw, int16_t pitch, int16_t shoot, int16_t rev)
+void CAN_CMD_GIMBAL(int16_t yaw, int16_t pitch)
 {
     GIMBAL_TxMessage.StdId = CAN_GIMBAL_ALL_ID;
     GIMBAL_TxMessage.IDE = CAN_ID_STD;
@@ -99,10 +99,6 @@ void CAN_CMD_GIMBAL(int16_t yaw, int16_t pitch, int16_t shoot, int16_t rev)
     GIMBAL_TxMessage.Data[1] = yaw;
     GIMBAL_TxMessage.Data[2] = (pitch >> 8);
     GIMBAL_TxMessage.Data[3] = pitch;
-    GIMBAL_TxMessage.Data[4] = (shoot >> 8);
-    GIMBAL_TxMessage.Data[5] = shoot;
-    GIMBAL_TxMessage.Data[6] = (rev >> 8);
-    GIMBAL_TxMessage.Data[7] = rev;
 
 #if GIMBAL_MOTOR_6020_CAN_LOSE_SLOVE
 
@@ -149,7 +145,7 @@ void CAN_CMD_CHASSIS_RESET_ID(void)
     CAN_Transmit(CAN2, &TxMessage);
 }
 
-//锟斤拷锟酵碉拷锟教碉拷锟斤拷锟斤拷锟斤拷锟斤拷锟�
+//锟斤拷锟酵碉拷锟教碉拷锟斤拷锟斤拷锟斤拷锟斤拷锟?1?7
 void CAN_CMD_CHASSIS(int16_t motor1, int16_t motor2, int16_t motor3, int16_t motor4)
 {
     CanTxMsg TxMessage;
@@ -213,22 +209,22 @@ void CAN_CMD_RESCUE(int16_t motor1, int16_t motor2)
 
     CAN_Transmit(RESCUE_CAN, &TxMessage);
 }
-//锟斤拷锟斤拷yaw锟斤拷锟斤拷锟斤拷锟斤拷锟街凤拷锟酵拷锟街革拷敕绞斤拷锟饺≡硷拷锟斤拷锟�
+//锟斤拷锟斤拷yaw锟斤拷锟斤拷锟斤拷锟斤拷锟街凤拷锟酵拷锟街革拷敕绞斤拷锟饺≡硷拷锟斤拷锟?1?7
 const motor_measure_t *get_Yaw_Gimbal_Motor_Measure_Point(void)
 {
     return &motor_yaw;
 }
-//锟斤拷锟斤拷pitch锟斤拷锟斤拷锟斤拷锟斤拷锟街凤拷锟酵拷锟街革拷敕绞斤拷锟饺≡硷拷锟斤拷锟�
+//锟斤拷锟斤拷pitch锟斤拷锟斤拷锟斤拷锟斤拷锟街凤拷锟酵拷锟街革拷敕绞斤拷锟饺≡硷拷锟斤拷锟?1?7
 const motor_measure_t *get_Pitch_Gimbal_Motor_Measure_Point(void)
 {
     return &motor_pit;
 }
-//锟斤拷锟截碉拷锟教碉拷锟斤拷锟斤拷锟斤拷锟街凤拷锟酵拷锟街革拷敕绞斤拷锟饺≡硷拷锟斤拷锟�
+//锟斤拷锟截碉拷锟教碉拷锟斤拷锟斤拷锟斤拷锟街凤拷锟酵拷锟街革拷敕绞斤拷锟饺≡硷拷锟斤拷锟?1?7
 const motor_measure_t *get_Chassis_Motor_Measure_Point(uint8_t i)
 {
     return &motor_chassis[(i & 0x03)];
 }
-//锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟街凤拷锟酵拷锟街革拷敕绞斤拷锟饺≡硷拷锟斤拷锟�
+//锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟街凤拷锟酵拷锟街革拷敕绞斤拷锟饺≡硷拷锟斤拷锟?1?7
 const motor_measure_t *get_Lifter_Motor_Measure_Point(uint8_t i)
 {
     return &motor_lifter[(i)];
@@ -256,7 +252,7 @@ static void CAN1_hook(CanRxMsg *rx_message)
         static uint8_t i = 0;
         //锟斤拷锟斤拷锟斤拷锟絀D锟斤拷
         i = rx_message->StdId - CAN_3508_M1_ID;
-        //锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷莺旰拷锟�
+        //锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷莺旰拷锟?1?7
         get_motor_measure(&motor_chassis[i], rx_message);
         //锟斤拷录时锟斤拷
         DetectHook(ChassisMotor1TOE + i);
