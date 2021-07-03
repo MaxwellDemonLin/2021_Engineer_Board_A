@@ -147,5 +147,4 @@ void startTask(void)
                 (void *)NULL,
                 (UBaseType_t)GIMBAL_TASK_PRIO,
                 (TaskHandle_t *)&Gimbal_Task_Handler); 
-    
 }

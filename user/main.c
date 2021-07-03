@@ -81,13 +81,13 @@ void BSP_init(void)
     //Ħ���ֵ��PWM��ʼ��
     fric_PWM_configuration();
     //��������ʼ��
-    buzzer_init(30000, 90);
+//    buzzer_init(30000, 90);
     //����IO��ʼ��
     laser_configuration();
 		Cylinder_GPIO_Config();
     //��ʱ��6 ��ʼ��
     TIM6_Init(60000, 90);
-		TIM2_Init(20000, 90);
+	 	TIM2_Init(20000, 90);
 		TIM_SetCompare4(TIM2, 2400);
 		EXTI_Key_Config();
     //CAN�ӿڳ�ʼ��

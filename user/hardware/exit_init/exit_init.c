@@ -4,6 +4,8 @@
 #include "rescue.h"
 extern rescue_control_e rescue_control;
 
+uint32_t cnt;
+
 void GPIOB_Exti8_GPIO_Init(void)
 {
     NVIC_InitTypeDef NVIC_InitStructure;
@@ -74,7 +76,7 @@ void EXTI_Key_Config(void)
 
 	  NVIC_InitTypeDef NVIC_InitStructure;
     EXTI_InitTypeDef EXTI_InitStructure;
-    GPIO_InitTypeDef GPIO_InitStructure;
+
 
     RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
@@ -95,7 +97,7 @@ void EXTI_Key_Config(void)
     EXTI_Init(&EXTI_InitStructure);
 
     NVIC_InitStructure.NVIC_IRQChannel = EXTI4_IRQn;
-    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 3;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
     NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x00;
     NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
     NVIC_Init(&NVIC_InitStructure);
@@ -119,7 +121,7 @@ void EXTI_Key_Config(void)
     EXTI_Init(&EXTI_InitStructure);
 
     NVIC_InitStructure.NVIC_IRQChannel = EXTI0_IRQn;
-    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
     NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x00;
     NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
     NVIC_Init(&NVIC_InitStructure);
@@ -130,6 +132,7 @@ void EXTI_Key_Config(void)
 void EXTI4_IRQHandler(void)
 
 {
+	cnt++;
   //确保是否产生了EXTI Line中断
 	if(EXTI_GetITStatus(EXTI_Line4) != RESET) 
 	{

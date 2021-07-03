@@ -1874,7 +1874,7 @@ extern "C"
    * @param[in]     resetStateFlag  flag to reset the state. 0 = no change in state 1 = reset the state.
    * @return none.
    */
-  void arm_pid_init_f32(
+  void arm_PID_Init_f32(
   arm_pid_instance_f32 * S,
   int32_t resetStateFlag);
 
@@ -1893,7 +1893,7 @@ extern "C"
    * @param[in]     resetStateFlag  flag to reset the state. 0 = no change in state 1 = reset the state.
    * @return none.
    */
-  void arm_pid_init_q31(
+  void arm_PID_Init_q31(
   arm_pid_instance_q31 * S,
   int32_t resetStateFlag);
 
@@ -1913,7 +1913,7 @@ extern "C"
    * @param[in] resetStateFlag  flag to reset the state. 0 = no change in state 1 = reset the state.
    * @return none.
    */
-  void arm_pid_init_q15(
+  void arm_PID_Init_q15(
   arm_pid_instance_q15 * S,
   int32_t resetStateFlag);
 

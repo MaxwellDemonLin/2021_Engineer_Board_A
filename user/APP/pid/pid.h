@@ -1,11 +1,11 @@
 /**
   ****************************(C) COPYRIGHT 2016 DJI****************************
   * @file       pid.c/h
-  * @brief      pidÊµï¿½Öºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½PIDï¿½ï¿½ï¿½ãº¯ï¿½ï¿½ï¿½ï¿½
+  * @brief      pidÊµÏÖº¯Êý£¬°üÀ¨³õÊ¼»¯£¬PID¼ÆËãº¯Êý£¬
   * @note       
   * @history
   *  Version    Date            Author          Modification
-  *  V1.0.0     Dec-26-2018     RM              1. ï¿½ï¿½ï¿½
+  *  V1.0.0     Dec-26-2018     RM              1. Íê³É
   *
   @verbatim
   ==============================================================================
@@ -23,17 +23,32 @@ enum PID_MODE
     PID_DELTA
 };
 
+
+typedef struct
+{
+    fp32 Q_coefficient;
+    fp32 last_state;
+    fp32 last_input;
+    fp32 last_input_hat;
+    fp32 d_hat;
+    fp32 (*Nominal_Input_Cal)(fp32 current_state, fp32 last_state);
+}NominalDOB;
+
+extern void NominalDOB_Init(NominalDOB* instance, fp32 Q_coefficient, fp32 (*Input_Fcn)(fp32,fp32));
+extern fp32 NominalDOB_Update(NominalDOB* instance, fp32 current_state, fp32 current_input);
+
 typedef struct
 {
     uint8_t mode;
-    //PID ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    //PID Èý²ÎÊý
     fp32 Kp;
     fp32 Ki;
     fp32 Kd;
 
-    fp32 max_out;  //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-    fp32 max_iout; //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-
+    fp32 max_out;  //×î´óÊä³ö
+    fp32 max_iout; //×î´ó»ý·ÖÊä³ö
+		fp32 derivative_output_filter_coefficient;
+    fp32 proportion_output_filter_coefficient;
     fp32 set;
     fp32 fdb;
 
@@ -41,11 +56,58 @@ typedef struct
     fp32 Pout;
     fp32 Iout;
     fp32 Dout;
-    fp32 Dbuf[3];  //Î¢ï¿½ï¿½ï¿½ï¿½ 0ï¿½ï¿½ï¿½ï¿½ 1ï¿½ï¿½Ò»ï¿½ï¿½ 2ï¿½ï¿½ï¿½Ï´ï¿½
-    fp32 error[3]; //ï¿½ï¿½ï¿½ï¿½ï¿½ 0ï¿½ï¿½ï¿½ï¿½ 1ï¿½ï¿½Ò»ï¿½ï¿½ 2ï¿½ï¿½ï¿½Ï´ï¿½
+    fp32 Dbuf[3];  //Î¢·ÖÏî 0×îÐÂ 1ÉÏÒ»´Î 2ÉÏÉÏ´Î
+    fp32 error[3]; //Îó²îÏî 0×îÐÂ 1ÉÏÒ»´Î 2ÉÏÉÏ´Î
 
 } PidTypeDef;
+/**
+  * @brief          pid struct data init
+  * @param[out]     pid: PID struct data point
+  * @param[in]      mode: PID_POSITION: normal pid
+  *                 PID_DELTA: delta pid
+  * @param[in]      PID: 0: kp, 1: ki, 2:kd
+  * @param[in]      max_out: pid max out
+  * @param[in]      max_iout: pid max iout
+  * @retval         none
+  */
+/**
+  * @brief          pid struct data init
+  * @param[out]     pid: PID½á¹¹Êý¾ÝÖ¸Õë
+  * @param[in]      mode: PID_POSITION:ÆÕÍ¨PID
+  *                 PID_DELTA: ²î·ÖPID
+  * @param[in]      PID: 0: kp, 1: ki, 2:kd
+  * @param[in]      max_out: pid×î´óÊä³ö
+  * @param[in]      max_iout: pid×î´ó»ý·ÖÊä³ö
+  * @retval         none
+  */
 extern void PID_Init(PidTypeDef *pid, uint8_t mode, const fp32 PID[3], fp32 max_out, fp32 max_iout);
+
+/**
+  * @brief          pid calculate 
+  * @param[out]     pid: PID struct data point
+  * @param[in]      ref: feedback data 
+  * @param[in]      set: set point
+  * @retval         pid out
+  */
+/**
+  * @brief          pid¼ÆËã
+  * @param[out]     pid: PID½á¹¹Êý¾ÝÖ¸Õë
+  * @param[in]      ref: ·´À¡Êý¾Ý
+  * @param[in]      set: Éè¶¨Öµ
+  * @retval         pidÊä³ö
+  */
 extern fp32 PID_Calc(PidTypeDef *pid, fp32 ref, fp32 set);
+
+/**
+  * @brief          pid out clear
+  * @param[out]     pid: PID struct data point
+  * @retval         none
+  */
+/**
+  * @brief          pid Êä³öÇå³ý
+  * @param[out]     pid: PID½á¹¹Êý¾ÝÖ¸Õë
+  * @retval         none
+  */
 extern void PID_clear(PidTypeDef *pid);
+
 #endif
