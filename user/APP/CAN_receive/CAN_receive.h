@@ -20,9 +20,9 @@
 #include "main.h"
 
 #define CHASSIS_CAN CAN2
-#define RESCUE_CAN  CAN1
+#define RESCUE_CAN  CAN2
 
-#define GIMBAL_CAN  CAN2
+#define GIMBAL_CAN  CAN1
 #define LIFTER_CAN  CAN2
 #define CLAW_CAN    CAN2
 

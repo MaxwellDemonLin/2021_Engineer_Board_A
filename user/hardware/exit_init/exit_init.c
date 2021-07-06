@@ -79,7 +79,7 @@ void EXTI_Key_Config(void)
 
 
     RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
+  
 
     SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOA, EXTI_PinSource4);
 
@@ -98,15 +98,15 @@ void EXTI_Key_Config(void)
 
     NVIC_InitStructure.NVIC_IRQChannel = EXTI4_IRQn;
     NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x00;
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x01;
     NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
     NVIC_Init(&NVIC_InitStructure);
 
 
+  RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
 
-
-    SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOC, EXTI_PinSource0);
-
+    SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOI, EXTI_PinSource5);
+		NVIC_InitTypeDef NVIC_InitStructure1;
 //    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4;
 //    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
 //    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
@@ -114,17 +114,17 @@ void EXTI_Key_Config(void)
 //    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
 //    GPIO_Init(GPIOB, &GPIO_InitStructure);
 
-    EXTI_InitStructure.EXTI_Line = EXTI_Line0;
+    EXTI_InitStructure.EXTI_Line = EXTI_Line5;
     EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
-    EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling;
+    EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising;
     EXTI_InitStructure.EXTI_LineCmd = ENABLE;
     EXTI_Init(&EXTI_InitStructure);
 
-    NVIC_InitStructure.NVIC_IRQChannel = EXTI0_IRQn;
-    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x00;
-    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-    NVIC_Init(&NVIC_InitStructure);
+    NVIC_InitStructure1.NVIC_IRQChannel = EXTI9_5_IRQn;
+    NVIC_InitStructure1.NVIC_IRQChannelPreemptionPriority = 0;
+    NVIC_InitStructure1.NVIC_IRQChannelSubPriority = 0x00;
+    NVIC_InitStructure1.NVIC_IRQChannelCmd = ENABLE;
+    NVIC_Init(&NVIC_InitStructure1);
 
 }
 
@@ -142,12 +142,13 @@ void EXTI4_IRQHandler(void)
 
 }
 
-void EXTI0_IRQHandler(void)
+/*void EXTI9_5_IRQHandler(void)
 {
   //确保是否产生了EXTI Line中断
-	if(EXTI_GetITStatus(EXTI_Line0) != RESET) 
+	if(EXTI_GetITStatus(EXTI_Line5) != RESET) 
 	{
     rescue_control.close_flag[1]=1;
-		EXTI_ClearITPendingBit(EXTI_Line0);     
+		EXTI_ClearITPendingBit(EXTI_Line5);     
 	}  
-}
+}*/
+

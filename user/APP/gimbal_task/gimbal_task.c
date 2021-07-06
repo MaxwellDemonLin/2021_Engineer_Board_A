@@ -4,6 +4,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "CAN_receive.h"
+#include "math.h"
 //云台控制所有相关数据
 Gimbal_Control_t gimbal_control;
 
@@ -43,6 +44,18 @@ void GIMBAL_Init(Gimbal_Control_t *gimbal_init)
     gimbal_init->gimbal_pitch_motor.gimbal_motor_measure = get_Pitch_Gimbal_Motor_Measure_Point();
     gimbal_init->gimbal_yaw_motor.gimbal_motor_measure = get_Yaw_Gimbal_Motor_Measure_Point();
     gimbal_init->gimbal_rc_ctrl = get_remote_control_point();
+    	gimbal_init->gimbal_pitch_motor.gimbal_ecd_pid.derivative_output_filter_coefficient= exp(-0.5*1E-3);
+		gimbal_init->gimbal_pitch_motor.gimbal_ecd_pid.proportion_output_filter_coefficient= exp(-50*1E-3);
+
+		gimbal_init->gimbal_yaw_motor.gimbal_ecd_pid.derivative_output_filter_coefficient= exp(-0.5*1E-3);
+		gimbal_init->gimbal_yaw_motor.gimbal_ecd_pid.proportion_output_filter_coefficient= exp(-50*1E-3);	
+		
+
+		gimbal_init->gimbal_pitch_motor.gimbal_speed_pid.derivative_output_filter_coefficient= exp(-0.05*1E-3);
+		gimbal_init->gimbal_pitch_motor.gimbal_speed_pid.proportion_output_filter_coefficient= exp(-400*1E-3);
+
+		gimbal_init->gimbal_yaw_motor.gimbal_speed_pid.derivative_output_filter_coefficient= exp(-0.05*1E-3);
+		gimbal_init->gimbal_yaw_motor.gimbal_speed_pid.proportion_output_filter_coefficient= exp(-400*1E-3);	
 }
 
 void GIMBAL_data_update(Gimbal_Control_t *gimbal_update)
@@ -53,7 +66,7 @@ void GIMBAL_data_update(Gimbal_Control_t *gimbal_update)
     }
     else if (&gimbal_update->gimbal_pitch_motor.gimbal_motor_measure->ecd < 0)
     {
-        gimbal_update->gimbal_pitch_motor.ecd_sum = gimbal_update->gimbal_pitch_motor.gimbal_motor_measure->ecd * 8191 - gimbal_update->gimbal_pitch_motor.gimbal_motor_measure->ecd;
+        gimbal_update->gimbal_pitch_motor.ecd_sum = gimbal_update->gimbal_pitch_motor.gimbal_motor_measure->ecd * 8191 + gimbal_update->gimbal_pitch_motor.gimbal_motor_measure->ecd;
     }
 
     if (&gimbal_update->gimbal_yaw_motor.gimbal_motor_measure->ecd >= 0)
@@ -62,7 +75,7 @@ void GIMBAL_data_update(Gimbal_Control_t *gimbal_update)
     }
     else if (&gimbal_update->gimbal_yaw_motor.gimbal_motor_measure->ecd < 0)
     {
-        gimbal_update->gimbal_yaw_motor.ecd_sum = gimbal_update->gimbal_yaw_motor.gimbal_motor_measure->ecd * 8191 - gimbal_update->gimbal_yaw_motor.gimbal_motor_measure->ecd;
+        gimbal_update->gimbal_yaw_motor.ecd_sum = gimbal_update->gimbal_yaw_motor.gimbal_motor_measure->ecd * 8191 + gimbal_update->gimbal_yaw_motor.gimbal_motor_measure->ecd;
     }
 }
 void GIMBAL_set_control(Gimbal_Control_t *gimbal_set_control)

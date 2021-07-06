@@ -38,7 +38,7 @@ typedef double fp64;
 
 #define RC_NVIC 4
 
-#define CAN1_NVIC 4
+#define CAN1_NVIC 6
 #define CAN2_NVIC 4
 #define TIM3_NVIC 5
 #define TIM6_NVIC 4
