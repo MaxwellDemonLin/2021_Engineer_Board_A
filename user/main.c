@@ -89,7 +89,7 @@ void BSP_init(void)
     TIM6_Init(60000, 90);
 	 	TIM2_Init(20000, 90);
 		TIM_SetCompare4(TIM2, 2400);
-//		EXTI_Key_Config();
+		EXTI_Key_Config();
     //CAN�ӿڳ�ʼ��
     CAN1_mode_init(CAN_SJW_1tq, CAN_BS2_2tq, CAN_BS1_6tq, 5, CAN_Mode_Normal);
     CAN2_mode_init(CAN_SJW_1tq, CAN_BS2_2tq, CAN_BS1_6tq, 5, CAN_Mode_Normal);

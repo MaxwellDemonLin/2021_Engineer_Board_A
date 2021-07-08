@@ -39,9 +39,7 @@
 #include "FreeRTOSConfig.h"
 #include "FreeRTOS.h"
 #include "task.h"
-#include "exit_init.h"
-#include "rescue.h"
-extern rescue_control_e rescue_control;
+
 #define IMUWarnBuzzerOn() buzzer_on(95, 10000) //开机陀螺仪校准蜂鸣器
 
 #define IMUWarnBuzzerOFF() buzzer_off() //开机陀螺仪校准蜂鸣器关闭
@@ -401,12 +399,6 @@ static void IMU_temp_Control(fp32 temp)
 
 void MPU6500_DATA_READY_EXIT_IRQHandler(void)
 {
-		  //确保是否产生了EXTI Line中断
-	if(EXTI_GetITStatus(EXTI_Line5) != RESET) 
-	{
-    rescue_control.close_flag[1]=1;
-		EXTI_ClearITPendingBit(EXTI_Line5);     
-	}  
     if (EXTI_GetITStatus(MPU6500_DATA_READY_EXIT_Line) != RESET)
     {
 

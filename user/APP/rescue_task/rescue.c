@@ -74,11 +74,11 @@ static void Rescue_cali(rescue_control_e *rescue_cali)
         }
         if (cali_time > CALI_TIME)
         {
-            rescue_cali->open_ecd_set[0] = rescue_cali->motor_sum_ecd[0]-10000;
-            rescue_cali->open_ecd_set[1] = rescue_cali->motor_sum_ecd[1]+10000;
+            rescue_cali->open_ecd_set[0] = rescue_cali->motor_sum_ecd[0]-2000;
+            rescue_cali->open_ecd_set[1] = rescue_cali->motor_sum_ecd[1]+2000;
 
-						rescue_cali->close_ecd_set[0] = rescue_cali->motor_sum_ecd[0]-95000;
-            rescue_cali->close_ecd_set[1] = rescue_cali->motor_sum_ecd[1]+95000;
+						rescue_cali->close_ecd_set[0] = rescue_cali->motor_sum_ecd[0]-80000;
+            rescue_cali->close_ecd_set[1] = rescue_cali->motor_sum_ecd[1]+80000;
             rescue_cali->cali_step++;
             cali_time = 0;
         }
