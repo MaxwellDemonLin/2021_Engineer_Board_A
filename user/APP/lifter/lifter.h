@@ -19,7 +19,7 @@ void Lift_task(void *pvParameters);
 #define RAW_UP_KEY        KEY_PRESSED_OFFSET_SHIFT
 #define RAW_DOWN_KEY      KEY_PRESSED_OFFSET_CTRL 
 
-#define LIFT_HEIGHT_RC_SEN 0.4f
+#define LIFT_HEIGHT_RC_SEN 1.6f
 
 #define KEY_CHANGE_VALUE  150
 
@@ -31,17 +31,17 @@ void Lift_task(void *pvParameters);
 #define Half_ecd_range 4096
 #define ecd_range 8191
 
-#define LIFT_SPEED_KP 15
-#define LIFT_SPEED_KI 0
+#define LIFT_SPEED_KP 20
+#define LIFT_SPEED_KI 0.1
 #define LIFT_SPEED_KD 0
 #define LIFT_SPEED_MAX_OUT 10000
 #define LIFT_SPEED_MAX_IOUT 0
 
 
-#define LIFT_COUNT_KP 0.03
+#define LIFT_COUNT_KP 0.3
 #define LIFT_COUNT_KI 0.0
 #define LIFT_COUNT_KD 0
-#define LIFT_COUNT_MAX_OUT 1800
+#define LIFT_COUNT_MAX_OUT 2500
 #define LIFT_COUNT_MAX_IOUT 5
 
 

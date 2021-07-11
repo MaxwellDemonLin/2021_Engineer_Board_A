@@ -42,9 +42,9 @@ void Cylinder_switch_init(void)
 	Cylinder_switch_e.Cylinder2 = 0;
 	Cylinder_switch_e.Cylinder3 = 0;
 	Cylinder_switch_e.cylinder_rc_ctrl = get_remote_control_point();
-	Cylinder1_Close;
-	Cylinder2_Close;
-	Cylinder3_Close;
+	Cylinder1_Open;
+	Cylinder2_Open;
+	Cylinder3_Open;
 }
 void Cylinder_switch_control(void)
 {

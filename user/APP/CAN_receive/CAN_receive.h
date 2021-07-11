@@ -20,10 +20,10 @@
 #include "main.h"
 
 #define CHASSIS_CAN CAN2
-#define RESCUE_CAN  CAN1
+#define RESCUE_CAN  CAN2
 
 #define GIMBAL_CAN  CAN2
-#define LIFTER_CAN  CAN2
+#define LIFTER_CAN  CAN1
 #define CLAW_CAN    CAN2
 
 /* CAN send and receive ID */
@@ -38,9 +38,6 @@ typedef enum
   CAN_GRAB_ALL_ID = 0x1FF,//CAN1
   CAN_LIFTER_M1_ID = 0x205,
   CAN_LIFTER_M2_ID = 0x206,
-
-
-
 
   CAN_RESCUE_ALL_ID = 0x1FF,//CAN2
   CAN_RESCUE_M1_ID = 0x205,

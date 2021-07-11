@@ -240,7 +240,7 @@ const motor_measure_t *get_Claw_Motor_Measure_Point(uint8_t i)
     return &motor_claw[(i)];
 }
 //CAN1 ���մ������� 
-static void CAN2_hook(CanRxMsg *rx_message)
+static void CAN1_hook(CanRxMsg *rx_message)
 {
     switch (rx_message->StdId)
     {
@@ -279,7 +279,7 @@ static void CAN2_hook(CanRxMsg *rx_message)
     }
 }
 //CAN2 ���մ������� 
-static void CAN1_hook(CanRxMsg *rx_message)
+static void CAN2_hook(CanRxMsg *rx_message)
 {
     switch (rx_message->StdId)
     {

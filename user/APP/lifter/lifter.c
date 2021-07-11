@@ -28,7 +28,7 @@ void Lift_task(void *pvParameters)
             lift_control_PID(&lift_control);
             if (lift_control.lift_mode != LIFT_NO_FORCE)
             {
-                CAN_CMD_LIFTER(lift_control.given_current[0], lift_control.given_current[1]);
+                CAN_CMD_LIFTER(1200+lift_control.given_current[0], -1200+lift_control.given_current[1]);
             }
             else if (lift_control.lift_mode == LIFT_NO_FORCE)
             {
