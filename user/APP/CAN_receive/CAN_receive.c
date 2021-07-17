@@ -91,7 +91,7 @@ void GIMBAL_lose_slove(void)
 
 void CAN_CMD_GIMBAL(int16_t yaw, int16_t pitch)
 {
-    GIMBAL_TxMessage.StdId = CAN_GIMBAL_ALL_ID;
+    GIMBAL_TxMessage.StdId = 0x200;
     GIMBAL_TxMessage.IDE = CAN_ID_STD;
     GIMBAL_TxMessage.RTR = CAN_RTR_DATA;
     GIMBAL_TxMessage.DLC = 0x08;
@@ -168,7 +168,7 @@ void CAN_CMD_CHASSIS(int16_t motor1, int16_t motor2, int16_t motor3, int16_t mot
 void CAN_CMD_LIFTER(int16_t motor1, int16_t motor2)
 {
     CanTxMsg TxMessage;
-    TxMessage.StdId = CAN_GRAB_ALL_ID;
+    TxMessage.StdId = 0x1FF;
     TxMessage.IDE = CAN_ID_STD;
     TxMessage.RTR = CAN_RTR_DATA;
     TxMessage.DLC = 0x08;
@@ -176,29 +176,12 @@ void CAN_CMD_LIFTER(int16_t motor1, int16_t motor2)
     TxMessage.Data[1] = motor1;
     TxMessage.Data[2] = motor2 >> 8;
     TxMessage.Data[3] = motor2;
-
-    CAN_Transmit(LIFTER_CAN, &TxMessage);
+    CAN_Transmit(CAN1, &TxMessage);
 }
-//צ�ӵ������ͺ���
 void CAN_CMD_CLAW(int16_t motor1, int16_t motor2)
 {
     CanTxMsg TxMessage;
-    TxMessage.StdId = 0x200;
-    TxMessage.IDE = CAN_ID_STD;
-    TxMessage.RTR = CAN_RTR_DATA;
-    TxMessage.DLC = 0x08;
-    TxMessage.Data[4] = motor1 >> 8;
-    TxMessage.Data[5] = motor1;
-    TxMessage.Data[6] = motor2 >> 8;
-    TxMessage.Data[7] = motor2;
-
-    CAN_Transmit(CLAW_CAN, &TxMessage);
-}
-//��Ԯ�������ͺ���
-void CAN_CMD_RESCUE(int16_t motor1, int16_t motor2)
-{
-    CanTxMsg TxMessage;
-    TxMessage.StdId = CAN_RESCUE_ALL_ID;
+    TxMessage.StdId = 0x1FF;
     TxMessage.IDE = CAN_ID_STD;
     TxMessage.RTR = CAN_RTR_DATA;
     TxMessage.DLC = 0x08;
@@ -206,8 +189,7 @@ void CAN_CMD_RESCUE(int16_t motor1, int16_t motor2)
     TxMessage.Data[1] = motor1;
     TxMessage.Data[2] = motor2 >> 8;
     TxMessage.Data[3] = motor2;
-
-    CAN_Transmit(RESCUE_CAN, &TxMessage);
+    CAN_Transmit(CAN2, &TxMessage);
 }
 //����yaw���������ַ��ͨ��ָ�뷽ʽ��ȡԭʼ����?1?7
 const motor_measure_t *get_Yaw_Gimbal_Motor_Measure_Point(void)
@@ -250,11 +232,8 @@ static void CAN1_hook(CanRxMsg *rx_message)
     case CAN_3508_M4_ID:
     {
         static uint8_t i = 0;
-        //�������ID��
         i = rx_message->StdId - CAN_3508_M1_ID;
-        //����������ݺ꺯��?1?7
         get_motor_measure(&motor_chassis[i], rx_message);
-        //��¼ʱ��
         DetectHook(ChassisMotor1TOE + i);
         break;
     }
@@ -271,6 +250,18 @@ static void CAN1_hook(CanRxMsg *rx_message)
         DetectHook(LifterMotor2TOE);
         break;
     }
+		case CAN_RESCUE_M1_ID:
+		{
+				get_motor_measure_ecd(&motor_rescue[0], rx_message);
+        DetectHook(ClawMotor2TOE);
+        break;
+		}
+		case CAN_RESCUE_M2_ID:
+		{
+				get_motor_measure_ecd(&motor_rescue[1], rx_message);
+        DetectHook(ClawMotor2TOE);
+        break;
+		}
 		
     default:
     {
@@ -309,18 +300,6 @@ static void CAN2_hook(CanRxMsg *rx_message)
         DetectHook(ClawMotor2TOE);
         break;
     }
-		case CAN_RESCUE_M1_ID:
-		{
-				get_motor_measure_ecd(&motor_rescue[0], rx_message);
-        DetectHook(ClawMotor2TOE);
-        break;
-		}
-		case CAN_RESCUE_M2_ID:
-		{
-				get_motor_measure_ecd(&motor_rescue[1], rx_message);
-        DetectHook(ClawMotor2TOE);
-        break;
-		}
     default:
     {
         break;

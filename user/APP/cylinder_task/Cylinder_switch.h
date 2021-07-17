@@ -3,6 +3,8 @@
 
 #include "stm32f4xx.h"
 #include "Remote_Control.h"
+#include "claw_task.h"
+
 
 #define Cylinder1_PIN                  GPIO_Pin_0                 
 #define Cylinder1_GPIO_PORT            GPIOB                      
@@ -43,10 +45,10 @@ typedef struct
     uint8_t Cylinder2;
     uint8_t Cylinder3;
 		const RC_ctrl_t *cylinder_rc_ctrl;
+		const Claw_control_e *claw;
 } Cylinder_switch_t;
 
 void Cylinder_GPIO_Config(void);
-void Cylinder_switch(void);
 void Cylinder_switch_control(void);
 const Cylinder_switch_t *get_Cylinder_switch_Measure_Point(void);
 void Cylinder_task(void *pvParameters);

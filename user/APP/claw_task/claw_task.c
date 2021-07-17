@@ -8,7 +8,7 @@
 #include "task.h"
 
 Claw_control_e claw_control;
-void Claw_task_init(Claw_control_e *claw_control_init); //初始化函数
+void Claw_task_init(Claw_control_e *claw_control_init); //初始化函�?
 void claw_rc_to_control_vector(int32_t *ecd, Claw_control_e *claw_rc_to_vector);
 static void claw_data_update(Claw_control_e *claw_update);
 static void claw_control_PID(Claw_control_e *claw_control);
@@ -24,14 +24,15 @@ void Claw_task(void *pvParameters)
     while (1)
     {
         claw_data_update(&claw_control);
-        timer(&claw_control);
         Claw_set_mode(&claw_control);
         claw_control_PID(&claw_control);
-        if (claw_control.claw_mode != CLAW_NO_FORCE)
+
+        if (claw_control.claw_mode != CLAW_NO_FORCE && claw_control.claw_mode != CLAW_CALI)
         {
             CAN_CMD_CLAW(claw_control.given_current[0], claw_control.given_current[1]);
+//						CAN_CMD_CLAW(2000, -2000);
         }
-        //判断是否无力，无力直接电流值设置为0
+  
         else if (claw_control.claw_mode == CLAW_NO_FORCE)
         {
             CAN_CMD_CLAW(0, 0);
@@ -53,7 +54,10 @@ void Claw_task_init(Claw_control_e *claw_control_init)
     claw_control_init->claw_motor_measure[0] = get_Claw_Motor_Measure_Point(0);
     claw_control_init->cali_flag = 0;
     claw_control_init->claw_motor_measure[1] = get_Claw_Motor_Measure_Point(1);
-    claw_control_init->claw_mode = CLAW_EXCHANGE;
+    claw_control_init->claw_mode = CLAW_RAW;
+    claw_data_update(&claw_control);
+    claw_control_init->ecd_sum_set[0] = claw_control_init->motor_sum_ecd[0];
+    claw_control_init->ecd_sum_set[1] = claw_control_init->motor_sum_ecd[1];
 }
 
 static void Claw_set_mode(Claw_control_e *claw_control_mode_set)
@@ -67,107 +71,131 @@ static void Claw_set_mode(Claw_control_e *claw_control_mode_set)
     {
         time--;
     }
+
+    if (claw_control_mode_set->claw_mode == CLAW_CALI)
+    {
+        return;
+    }
+
     if (switch_is_up(claw_control_mode_set->claw_RC->rc.s[0]))
     {
-        if (claw_control.cali_step == 1)
+			claw_control_mode_set->claw_mode = CLAW_RAW;
+        if (claw_control_mode_set->claw_RC->key.v & RAW_FORWARD_KEY && claw_control_mode_set->claw_RC->key.v & RAW_BACKWARS_KEY)
         {
-            if (!time)
-            {
-                claw_control_mode_set->claw_mode = CLAW_RAW;
+            cali_time++;
+        }
+        if (!(claw_control_mode_set->claw_RC->key.v & RAW_FORWARD_KEY && claw_control_mode_set->claw_RC->key.v & RAW_FORWARD_KEY))
+        {
+            cali_time = 0;
+        }
+        if (cali_time == 1000)
+        {
+            claw_control_mode_set->cali_step = 0;
+            claw_control_mode_set->claw_mode = CLAW_CALI;
+            cali_time = 0;
+            return;
+        }
 
-                if (claw_control_mode_set->claw_RC->key.v & RAW_FORWARD_KEY && claw_control_mode_set->claw_RC->key.v & RAW_BACKWARS_KEY)
-                {
-                    cali_time++;
-                }
-                if (!(claw_control_mode_set->claw_RC->key.v & RAW_FORWARD_KEY && claw_control_mode_set->claw_RC->key.v & RAW_FORWARD_KEY))
-                {
-                    cali_time = 0;
-                }
-                if (cali_time == 1000)
-                {
-                    claw_control_mode_set->cali_step = 0;
-                    claw_control_mode_set->claw_mode = CLAW_CALI;
-                    cali_time = 0;
-                }
-                if (claw_control_mode_set->claw_mode == CLAW_RAW)
-                {
-                    claw_rc_to_control_vector(&ecd_add, claw_control_mode_set);
-                    claw_control_mode_set->ecd_sum_set[0] += ecd_add;
-                    claw_control_mode_set->ecd_sum_set[1] -= ecd_add;
-                }
-                if (claw_control_mode_set->claw_RC->key.v & KEY_PRESSED_OFFSET_F)
+        if (!time)
+        {
+
+            claw_rc_to_control_vector(&ecd_add, claw_control_mode_set);
+            claw_control_mode_set->ecd_sum_set[0] += ecd_add;
+            claw_control_mode_set->ecd_sum_set[1] -= ecd_add;
+
+            if (claw_control.cali_step == 1)
+            {
+                if (claw_control_mode_set->claw_RC->key.v & KEY_PRESSED_OFFSET_G && claw_control_mode_set->claw_RC->mouse.press_r)
                 {
                     if (claw_control_mode_set->cali_flag)
                     {
                         claw_control_mode_set->claw_mode = CLAW_EXCHANGE;
+                        claw_control_mode_set->ecd_sum_set[0] = claw_control_mode_set->down_sum_ecd[0] - FORWARD_HORIZONTAL;
+                        claw_control_mode_set->ecd_sum_set[1] = claw_control_mode_set->down_sum_ecd[1] + FORWARD_HORIZONTAL;
+                    }
+                    cali_time = 0;
+                }
+                if (claw_control_mode_set->claw_RC->key.v & KEY_PRESSED_OFFSET_B && claw_control_mode_set->claw_RC->mouse.press_r)
+                {
+                    if (claw_control_mode_set->cali_flag)
+                    {
+                        claw_control_mode_set->claw_mode = CLAW_EXCHANGE;
+                        claw_control_mode_set->ecd_sum_set[0] = claw_control_mode_set->down_sum_ecd[0] - BACKWARD_HORIONT;
+                        claw_control_mode_set->ecd_sum_set[1] = claw_control_mode_set->down_sum_ecd[1] + BACKWARD_HORIONT;
                     }
                     cali_time = 0;
                 }
             }
         }
-    }
-    if (switch_is_down(claw_control_mode_set->claw_RC->rc.s[0]))
-    {
-        claw_control_mode_set->claw_mode = CLAW_NO_FORCE;
-        claw_control_mode_set->ecd_sum_set[0] = claw_control_mode_set->down_sum_ecd[0]; //为了防止有力无力切换时上升发生抖动，因此将设定值设置为0
-        claw_control_mode_set->ecd_sum_set[1] = claw_control_mode_set->down_sum_ecd[1];
-    }
+		}
+		  if (switch_is_mid(claw_control_mode_set->claw_RC->rc.s[0]))
+			{
+							claw_control_mode_set->claw_mode = CLAW_RAW;
+				 claw_rc_to_control_vector(&ecd_add, claw_control_mode_set);
+         claw_control_mode_set->ecd_sum_set[0] += ecd_add;
+         claw_control_mode_set->ecd_sum_set[1] -= ecd_add;
+			}
+        if (switch_is_down(claw_control_mode_set->claw_RC->rc.s[0]))
+        {
+            claw_control_mode_set->claw_mode = CLAW_NO_FORCE;
+            claw_control_mode_set->ecd_sum_set[0] = claw_control_mode_set->down_sum_ecd[0]; //为了防止有力无力切换时上升发生抖动，因此将设定值设置为0
+            claw_control_mode_set->ecd_sum_set[1] = claw_control_mode_set->down_sum_ecd[1];
+        }
+    
 }
-
 static void claw_rc_to_control_vector(int32_t *ecd, Claw_control_e *claw_rc_to_vector)
 {
     fp32 ecd_channel;
-    //死区限制，因为遥控器可能存在差异 摇杆在中间，其值不为0
-    rc_deadline_limit(claw_rc_to_vector->claw_RC->rc.ch[3], ecd_channel, 10);
+
+    rc_deadline_limit(claw_rc_to_vector->claw_RC->rc.ch[4], ecd_channel, 10);
     int32_t ecd_add = 0;
     *ecd = ecd_channel * CLAW_HEIGHT_RC_SEN;
-    if (claw_rc_to_vector->claw_RC->key.v & RAW_BACKWARS_KEY && !(claw_rc_to_vector->claw_RC->key.v & RAW_FORWARD_KEY))
+    if (claw_rc_to_vector->claw_RC->key.v & RAW_BACKWARS_KEY && !claw_rc_to_vector->claw_RC->key.v & RAW_FORWARD_KEY && !claw_rc_to_vector->claw_RC->mouse.press_r)
     {
         ecd_add = 100;
     }
-    if (claw_rc_to_vector->claw_RC->key.v & !(claw_rc_to_vector->claw_RC->key.v & RAW_BACKWARS_KEY))
+    if (claw_rc_to_vector->claw_RC->key.v & RAW_FORWARD_KEY && !claw_rc_to_vector->claw_RC->key.v & RAW_BACKWARS_KEY&& !claw_rc_to_vector->claw_RC->mouse.press_r)
     {
         ecd_add = -100;
     }
     if (claw_rc_to_vector->cali_flag == 1)
     {
-        if (claw_rc_to_vector->motor_sum_ecd[0] + ecd_add > claw_rc_to_vector->down_sum_ecd[0])
+        if (ecd_add > 0)
         {
-            claw_rc_to_vector->ecd_sum_set[0] = claw_rc_to_vector->down_sum_ecd[0];
-            claw_rc_to_vector->ecd_sum_set[1] = claw_rc_to_vector->down_sum_ecd[1];
+            if (claw_rc_to_vector->ecd_sum_set[0] + ecd_add > claw_rc_to_vector->down_sum_ecd[0])
+            {
+                claw_rc_to_vector->ecd_sum_set[0] = claw_rc_to_vector->down_sum_ecd[0];
+                claw_rc_to_vector->ecd_sum_set[1] = claw_rc_to_vector->down_sum_ecd[1];
+                return;
+            }
         }
-        if (claw_rc_to_vector->motor_sum_ecd[0] - ecd_add < claw_rc_to_vector->down_sum_ecd[0]-UP_ECD_ADD)
+        if (ecd_add < 0)
         {
-            claw_rc_to_vector->ecd_sum_set[0] = claw_rc_to_vector->down_sum_ecd[0]-UP_ECD_ADD;
-            claw_rc_to_vector->ecd_sum_set[1] = claw_rc_to_vector->down_sum_ecd[1]+UP_ECD_ADD;
+            if (claw_rc_to_vector->ecd_sum_set[0] + ecd_add < claw_rc_to_vector->down_sum_ecd[0] - UP_ECD_ADD)
+            {
+                claw_rc_to_vector->ecd_sum_set[0] = claw_rc_to_vector->down_sum_ecd[0] - UP_ECD_ADD;
+                claw_rc_to_vector->ecd_sum_set[1] = claw_rc_to_vector->down_sum_ecd[1] + UP_ECD_ADD;
+                return;
+            }
         }
-        else *ecd = ecd_add;
+        *ecd = ecd_add;
     }
-    else *ecd = ecd_add;
+    else
+        *ecd = ecd_add;
 }
 static void claw_control_PID(Claw_control_e *claw_control)
 {
     if (claw_control->claw_mode == CLAW_CALI)
     {
         Claw_cali(claw_control);
+        return;
     }
 
-    if (claw_control->claw_mode == CLAW_RAW)
-    {
-        PID_Calc(&claw_control->claw_height_pid[0], claw_control->motor_sum_ecd[0], claw_control->ecd_sum_set[0]);
-        PID_Calc(&claw_control->claw_height_pid[1], claw_control->motor_sum_ecd[1], claw_control->ecd_sum_set[1]);
+    PID_Calc(&claw_control->claw_height_pid[0], claw_control->motor_sum_ecd[0], claw_control->ecd_sum_set[0]);
+    PID_Calc(&claw_control->claw_height_pid[1], claw_control->motor_sum_ecd[1], claw_control->ecd_sum_set[1]);
 
-        claw_control->given_current[0] = (int16_t)PID_Calc(&claw_control->claw_speed_pid[0], claw_control->claw_motor_measure[0]->speed_rpm, claw_control->claw_height_pid[0].out);
-        claw_control->given_current[1] = (int16_t)PID_Calc(&claw_control->claw_speed_pid[1], claw_control->claw_motor_measure[1]->speed_rpm, claw_control->claw_height_pid[1].out);
-    }
-    if(claw_control->claw_mode == CLAW_EXCHANGE)
-    {
-        PID_Calc(&claw_control->claw_height_pid[0], claw_control->motor_sum_ecd[0], claw_control->exchange_sum_ecd[0]);
-        PID_Calc(&claw_control->claw_height_pid[1], claw_control->motor_sum_ecd[1], claw_control->exchange_sum_ecd[1]);
-
-        claw_control->given_current[0] = (int16_t)PID_Calc(&claw_control->claw_speed_pid[0], claw_control->claw_motor_measure[0]->speed_rpm, claw_control->claw_height_pid[0].out);
-        claw_control->given_current[1] = (int16_t)PID_Calc(&claw_control->claw_speed_pid[1], claw_control->claw_motor_measure[1]->speed_rpm, claw_control->claw_height_pid[1].out);
-    }
+    claw_control->given_current[0] = (int16_t)PID_Calc(&claw_control->claw_speed_pid[0], claw_control->claw_motor_measure[0]->speed_rpm, claw_control->claw_height_pid[0].out);
+    claw_control->given_current[1] = (int16_t)PID_Calc(&claw_control->claw_speed_pid[1], claw_control->claw_motor_measure[1]->speed_rpm, claw_control->claw_height_pid[1].out);
 }
 static void claw_data_update(Claw_control_e *claw_update)
 {
@@ -198,41 +226,20 @@ static void Claw_cali(Claw_control_e *Claw_cali)
         }
         if (cali_time > CALI_TIME)
         {
-            Claw_cali->down_sum_ecd[0] = Claw_cali->motor_sum_ecd[0];
-            Claw_cali->down_sum_ecd[1] = Claw_cali->motor_sum_ecd[1];
+            Claw_cali->down_sum_ecd[0] = Claw_cali->motor_sum_ecd[0] - 2000;
+            Claw_cali->down_sum_ecd[1] = Claw_cali->motor_sum_ecd[1] + 2000;
             Claw_cali->ecd_sum_set[0] = Claw_cali->motor_sum_ecd[0];
             Claw_cali->ecd_sum_set[1] = Claw_cali->motor_sum_ecd[1];
-            Claw_cali->exchange_sum_ecd[0] = Claw_cali->motor_sum_ecd[0]-EXCHANGE_ADD;
-            Claw_cali->exchange_sum_ecd[1] = Claw_cali->motor_sum_ecd[1]+EXCHANGE_ADD;
+            Claw_cali->exchange_sum_ecd[0] = Claw_cali->motor_sum_ecd[0] - EXCHANGE_ADD;
+            Claw_cali->exchange_sum_ecd[1] = Claw_cali->motor_sum_ecd[1] + EXCHANGE_ADD;
             Claw_cali->cali_step++;
+            Claw_cali->claw_mode = CLAW_RAW;
             Claw_cali->cali_flag = 1;
             cali_time = 0;
         }
     }
 }
-static void timer(Claw_control_e *Claw_cali)
+const Claw_control_e *get_claw_measure(void)
 {
-    static uint8_t flag1 = 0;
-    //计算遥控器的原始输入信号
-    static uint16_t time = 500;
-    if (time)
-    {
-        time--;
-    }
-    if (!time)
-    {
-        //判断是否要摇摆
-        if ((Claw_cali->claw_RC->key.v & KEY_PRESSED_OFFSET_V) && flag1 == 0)
-        {
-            flag1 = 1;
-            time = 500;
-            TIM_SetCompare4(TIM2, 2400);
-        }
-        else if ((Claw_cali->claw_RC->key.v & KEY_PRESSED_OFFSET_V) && flag1 == 1)
-        {
-            flag1 = 0;
-            time = 500;
-            TIM_SetCompare4(TIM2, 1500);
-        }
-    }
+    return &claw_control;
 }

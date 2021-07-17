@@ -21,12 +21,12 @@ void Lift_task(void *pvParameters);
 
 #define LIFT_HEIGHT_RC_SEN 1.6f
 
-#define KEY_CHANGE_VALUE  150
+#define KEY_CHANGE_VALUE  400
 
 #define LOOT_HEIGHT_ECD           10000
-#define LARGE_ISLAND_HEIGHT_ECD   16000
+#define LARGE_ISLAND_HEIGHT_ECD   57670
 #define SMALL_ISLAND_HEIGHT_ECD   10000
-#define EXCHANGE_HEIGHT_ECD       10000
+#define EXCHANGE_HEIGHT_ECD       302671
 
 #define Half_ecd_range 4096
 #define ecd_range 8191
@@ -44,9 +44,9 @@ void Lift_task(void *pvParameters);
 #define LIFT_COUNT_MAX_OUT 2500
 #define LIFT_COUNT_MAX_IOUT 5
 
+#define FULL_RANGE 380000
 
-
-#define LIFT_CALI_CURRENT_DOWN   500 
+#define LIFT_CALI_CURRENT_DOWN   2500 
 #define LIFT_CALI_CURRENT_UP		 500
 #define CALI_TIME 600
 

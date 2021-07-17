@@ -6,7 +6,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
-Cylinder_switch_t Cylinder_switch_e;
+Cylinder_switch_t Cylinder_switch;
 void Cylinder_GPIO_Config(void)
 {
 	GPIO_InitTypeDef GPIO_InitStructure;
@@ -37,11 +37,11 @@ void Cylinder_switch_init(void)
 {
 	Cylinder_GPIO_Config();
 	//Cylinder_switch = get_Cylinder_switch_Measure_Point();
-
-	Cylinder_switch_e.Cylinder1 = 0;
-	Cylinder_switch_e.Cylinder2 = 0;
-	Cylinder_switch_e.Cylinder3 = 0;
-	Cylinder_switch_e.cylinder_rc_ctrl = get_remote_control_point();
+	Cylinder_switch.claw = get_claw_measure();
+	Cylinder_switch.Cylinder1 = 0;
+	Cylinder_switch.Cylinder2 = 0;
+	Cylinder_switch.Cylinder3 = 0;
+	Cylinder_switch.cylinder_rc_ctrl = get_remote_control_point();
 	Cylinder1_Open;
 	Cylinder2_Open;
 	Cylinder3_Open;
@@ -55,29 +55,36 @@ void Cylinder_switch_control(void)
 	}
 	if (!time)
 	{
-		if (Cylinder_switch_e.cylinder_rc_ctrl->key.v & KEY_PRESSED_OFFSET_X)
+		if (Cylinder_switch.cylinder_rc_ctrl->mouse.press_l)
 		{
 			Cylinder1_TOGGLE;
-			Cylinder_switch_e.Cylinder1 = !Cylinder_switch_e.Cylinder1;
+			Cylinder_switch.Cylinder1 = !Cylinder_switch.Cylinder1;
 			time = 100;
 		}
-		if (Cylinder_switch_e.cylinder_rc_ctrl->key.v & KEY_PRESSED_OFFSET_C)
+		if (Cylinder_switch.cylinder_rc_ctrl->key.v & KEY_PRESSED_OFFSET_X)
 		{
 			Cylinder2_TOGGLE;
-			Cylinder_switch_e.Cylinder2 = !Cylinder_switch_e.Cylinder2;
+			Cylinder_switch.Cylinder2 = !Cylinder_switch.Cylinder2;
 			time = 100;
 		}
-		if (Cylinder_switch_e.cylinder_rc_ctrl->key.v & KEY_PRESSED_OFFSET_Z)
+		if (Cylinder_switch.cylinder_rc_ctrl->key.v & KEY_PRESSED_OFFSET_R && Cylinder_switch.cylinder_rc_ctrl->mouse.press_r)
 		{
 			Cylinder3_TOGGLE;
-			Cylinder_switch_e.Cylinder3 = !Cylinder_switch_e.Cylinder3;
+			Cylinder_switch.Cylinder3 = !Cylinder_switch.Cylinder3;
 			time = 100;
+		}
+	}
+	if(Cylinder_switch.claw->cali_flag==1)
+	{
+		if(Cylinder_switch.claw->motor_sum_ecd[0]<Cylinder_switch.claw->down_sum_ecd[0]-25000)
+		{
+			Cylinder1_Close;
 		}
 	}
 }
 const Cylinder_switch_t *get_Cylinder_switch_Measure_Point(void)
 {
-	return &Cylinder_switch_e;
+	return &Cylinder_switch;
 }
 void Cylinder_task(void *pvParameters)
 {

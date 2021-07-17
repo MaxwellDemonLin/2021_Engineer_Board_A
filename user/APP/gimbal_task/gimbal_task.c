@@ -22,13 +22,13 @@ void Gimbal_Task(void *pvParameters)
         GIMBAL_PID_Cali(&gimbal_control);
         if(gimbal_control.GIMBAL_mode!=NO_FORCE)
         {
-            CAN_CMD_GIMBAL(gimbal_control.gimbal_yaw_motor.given_current,gimbal_control.gimbal_pitch_motor.given_current);
+           // CAN_CMD_GIMBAL(gimbal_control.gimbal_yaw_motor.given_current,gimbal_control.gimbal_pitch_motor.given_current);
         }
         else if(gimbal_control.GIMBAL_mode==NO_FORCE)
         {
-            CAN_CMD_GIMBAL(0,0);
+           // CAN_CMD_GIMBAL(0,0);
         }
-        
+        vTaskDelay(2);
     }
     
 }

@@ -19,15 +19,15 @@ void Rescue_task(void *pvParameters)
     Rescue_init(&rescue_control);
     while (1)
     {
-        Rescue_cali(&rescue_control);
+      //  Rescue_cali(&rescue_control);
         Rescue_data_update(&rescue_control);
         if(rescue_control.cali_step==1)
         {
         Rescue_mode_set(&rescue_control);
         Rescue_control_PID(&rescue_control);        
-        CAN_CMD_RESCUE(rescue_control.give_current[0], rescue_control.give_current[1]);
+      //  CAN_CMD_RESCUE(rescue_control.give_current[0], rescue_control.give_current[1]);
         }
-        vTaskDelay(1);
+        vTaskDelay(2);
     }
 }
 void Rescue_init(rescue_control_e *rescue_init)
@@ -121,7 +121,7 @@ static void Rescue_mode_set(rescue_control_e *rescue_mode_set)
     {
         if (key_rescue_flag)
         {
-            if (rescue_mode_set->rescue_RC->key.v & RESCUE_KEY)
+            if (rescue_mode_set->rescue_RC->key.v & RESCUE_KEY && !(rescue_mode_set->rescue_RC->mouse.press_r))
             {
                 rescue_mode_set->Claw_mode[0] = OPEN;
                 rescue_mode_set->Claw_mode[1] = OPEN;
@@ -131,7 +131,7 @@ static void Rescue_mode_set(rescue_control_e *rescue_mode_set)
         }
         else if (!key_rescue_flag)
         {
-            if (rescue_mode_set->rescue_RC->key.v & RESCUE_KEY)
+            if (rescue_mode_set->rescue_RC->key.v & RESCUE_KEY && !(rescue_mode_set->rescue_RC->mouse.press_r))
             {
                 rescue_mode_set->Claw_mode[0] = CLOSE;
                 rescue_mode_set->Claw_mode[1] = CLOSE;

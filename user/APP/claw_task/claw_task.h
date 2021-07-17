@@ -15,28 +15,27 @@ void Claw_task(void *pvParameters);
 //键盘原生模式上升下降
 #define KEY_CHANGE_VALUE  50
 //上升高度
-#define LOOT_HEIGHT_ECD           10000
-#define LARGE_ISLAND_HEIGHT_ECD   16000
-#define SMALL_ISLAND_HEIGHT_ECD   10000
-#define EXCHANGE_HEIGHT_ECD       10000
+#define FORWARD_HORIZONTAL 80000
+#define BACKWARD_HORIONT 15000
+#define VERTICAL_DOWN 10000
 //编码器范围 
 #define Half_ecd_range 4096
 #define ecd_range 8191
 //速度PID
 #define CLAW_SPEED_KP 18
-#define CLAW_SPEED_KI 0
+#define CLAW_SPEED_KI 1.0
 #define CLAW_SPEED_KD 0
 #define CLAW_SPEED_MAX_OUT 8000
 #define CLAW_SPEED_MAX_IOUT 0
 
 //圈数PID
-#define CLAW_COUNT_KP 0.06
-#define CLAW_COUNT_KI 0.0
+#define CLAW_COUNT_KP 0.30
+#define CLAW_COUNT_KI 0
 #define CLAW_COUNT_KD 0
-#define CLAW_COUNT_MAX_OUT 600
+#define CLAW_COUNT_MAX_OUT 2000
 #define CLAW_COUNT_MAX_IOUT 5
 //校准电流
-#define CLAW_CALI_CURRENT_DOWN   2000 
+#define CLAW_CALI_CURRENT_DOWN   -2000 
 #define CLAW_CALI_CURRENT_UP		 2500
 #define CALI_TIME 600
 //死区限制
@@ -52,7 +51,7 @@ void Claw_task(void *pvParameters);
         }                                                \
     }
 #define EXCHANGE_ADD  10000
-#define UP_ECD_ADD   30000
+#define UP_ECD_ADD   120000
 typedef enum
 {
    CLAW_RAW,
@@ -73,12 +72,8 @@ typedef struct
     PidTypeDef claw_height_pid[2]; 
     PidTypeDef claw_speed_pid[2];
     int16_t give_current[2];
-    fp32 speed[2];
-    fp32 speed_set;
-    fp32 height[2];
     int32_t ecd_sum_set[2];
     int16_t given_current[2];
-    int8_t ecd_count[2];
     int32_t motor_count_set[2];
     int32_t down_sum_ecd[2];
     int32_t exchange_sum_ecd[2];
@@ -88,5 +83,5 @@ typedef struct
     uint8_t cali_flag;
     claw_mode_e claw_mode;
 } Claw_control_e;
-
+const Claw_control_e *get_claw_measure(void);
 #endif

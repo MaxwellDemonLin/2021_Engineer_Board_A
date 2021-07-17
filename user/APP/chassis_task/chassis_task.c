@@ -100,8 +100,8 @@ void chassis_task(void *pvParameters)
             }
             else
             {
-                CAN_CMD_CHASSIS(chassis_move.motor_chassis[0].give_current, chassis_move.motor_chassis[1].give_current,
-                                chassis_move.motor_chassis[2].give_current, chassis_move.motor_chassis[3].give_current);
+    //            CAN_CMD_CHASSIS(chassis_move.motor_chassis[0].give_current, chassis_move.motor_chassis[1].give_current,
+      //                          chassis_move.motor_chassis[2].give_current, chassis_move.motor_chassis[3].give_current);
             }
         }
         //œµÕ≥—” ±

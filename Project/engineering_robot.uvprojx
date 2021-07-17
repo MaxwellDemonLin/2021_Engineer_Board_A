@@ -814,14 +814,14 @@
           <GroupName>APP</GroupName>
           <Files>
             <File>
-              <FileName>CAN_receive.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\user\APP\CAN_receive\CAN_receive.c</FilePath>
-            </File>
-            <File>
               <FileName>detect_task.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\user\APP\detect_task\detect_task.c</FilePath>
+            </File>
+            <File>
+              <FileName>CAN_receive.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\user\APP\CAN_receive\CAN_receive.c</FilePath>
             </File>
             <File>
               <FileName>FreeRTOS_middleware.c</FileName>
