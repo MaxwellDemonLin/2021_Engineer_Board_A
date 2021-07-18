@@ -71,9 +71,8 @@ extern void CAN_CMD_GIMBAL(int16_t yaw, int16_t pitch);
 
 extern void CAN_CMD_CHASSIS(int16_t motor1, int16_t motor2, int16_t motor3, int16_t motor4);
 
-extern void CAN_CMD_LIFTER(int16_t motor1, int16_t motor2);
+void CAN_CMD_LIFTER_RESCUE(int16_t motor1, int16_t motor2, int16_t motor3 , int16_t motor4);
 
-extern void CAN_CMD_RESCUE(int16_t motor1, int16_t motor2);
 
 extern void CAN_CMD_CLAW(int16_t motor1, int16_t motor2);
 

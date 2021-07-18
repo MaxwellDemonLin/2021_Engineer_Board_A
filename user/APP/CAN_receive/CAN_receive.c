@@ -165,7 +165,7 @@ void CAN_CMD_CHASSIS(int16_t motor1, int16_t motor2, int16_t motor3, int16_t mot
     CAN_Transmit(CHASSIS_CAN, &TxMessage);
 }
 //�����������ͺ���
-void CAN_CMD_LIFTER(int16_t motor1, int16_t motor2)
+void CAN_CMD_LIFTER_RESCUE(int16_t motor1, int16_t motor2, int16_t motor3 , int16_t motor4)
 {
     CanTxMsg TxMessage;
     TxMessage.StdId = 0x1FF;
@@ -176,6 +176,10 @@ void CAN_CMD_LIFTER(int16_t motor1, int16_t motor2)
     TxMessage.Data[1] = motor1;
     TxMessage.Data[2] = motor2 >> 8;
     TxMessage.Data[3] = motor2;
+		TxMessage.Data[4] = motor3>>8;
+		TxMessage.Data[5] = motor3;
+		TxMessage.Data[6] = motor4>>8;
+		TxMessage.Data[7] = motor4;
     CAN_Transmit(CAN1, &TxMessage);
 }
 void CAN_CMD_CLAW(int16_t motor1, int16_t motor2)

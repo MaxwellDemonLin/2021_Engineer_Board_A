@@ -1,9 +1,7 @@
 #include "exit_init.h"
-
+#include "lifter.h"
 #include "stm32f4xx.h"
-#include "rescue.h"
 extern rescue_control_e rescue_control;
-
 uint32_t cnt;
 
 void GPIOB_Exti8_GPIO_Init(void)

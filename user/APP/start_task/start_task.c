@@ -27,7 +27,6 @@
 #include "INS_Task.h"
 #include "chassis_task.h"
 #include "lifter.h"
-#include "rescue.h"
 #include "claw_task.h"
 #include "gimbal_task.h"
 #include "Cylinder_switch.h"
@@ -52,20 +51,12 @@ static TaskHandle_t UserTask_Handler;
 #define START_STK_SIZE 512
 static TaskHandle_t StartTask_Handler;
 
-#define CALIBRATE_TASK_PRIO 5
-#define CALIBRATE_STK_SIZE 512
-static TaskHandle_t CalibrateTask_Handler;
-
 #define Detect_TASK_PRIO 10
 #define Detect_STK_SIZE 512
 static TaskHandle_t DetectTask_Handler;
 
-#define Rescue_TASK_PRIO 15
-#define Rescue_STK_SIZE 512
-static TaskHandle_t RescueTask_Handler;
-
 #define Lift_TASK_PRIO 14
-#define Lift_STK_SIZE 512
+#define Lift_Rescue_STK_SIZE 512
 static TaskHandle_t LiftTask_Handler;
 
 #define CLAW_TASK_PRIO  15
@@ -77,9 +68,10 @@ static TaskHandle_t ClawTask_Handler;
 #define Cylinder_STK_SIZE 512
 static TaskHandle_t Cylinder_Task_Handler;
 
-#define GIMBAL_TASK_PRIO  6
-#define GIMBAL_STK_SIZE 512
+
+
 static TaskHandle_t Gimbal_Task_Handler;
+
 
 void start_task(void *pvParameters)
 {
@@ -117,21 +109,15 @@ void startTask(void)
                 (void *)NULL,
                 (UBaseType_t)Detect_TASK_PRIO,
                 (TaskHandle_t *)&DetectTask_Handler);
-    xTaskCreate((TaskFunction_t)Rescue_task,
-                (const char *)"RescueTask",
-                (uint16_t)Detect_STK_SIZE,
-                (void *)NULL,
-                (UBaseType_t)Rescue_TASK_PRIO,
-                (TaskHandle_t *)&RescueTask_Handler);
-    xTaskCreate((TaskFunction_t)Lift_task,
-                (const char *)"LiftTask",
-                (uint16_t)Detect_STK_SIZE,
+    xTaskCreate((TaskFunction_t)Lift_Rescue_task,
+                (const char *)"LiftRescueTask",
+                (uint16_t)Lift_Rescue_STK_SIZE,
                 (void *)NULL,
                 (UBaseType_t)Lift_TASK_PRIO,
                 (TaskHandle_t *)&LiftTask_Handler);
     xTaskCreate((TaskFunction_t)Claw_task,
                 (const char *)"ClawTask",
-                (uint16_t)Detect_STK_SIZE,
+                (uint16_t)Claw_STK_SIZE,
                 (void *)NULL,
                 (UBaseType_t)CLAW_TASK_PRIO,
                 (TaskHandle_t *)&ClawTask_Handler); 

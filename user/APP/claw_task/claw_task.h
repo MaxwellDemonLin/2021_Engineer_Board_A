@@ -11,7 +11,7 @@ void Claw_task(void *pvParameters);
 #define RAW_FORWARD_KEY   KEY_PRESSED_OFFSET_G
 #define RAW_BACKWARS_KEY KEY_PRESSED_OFFSET_B
 //遥控器和高度转化比例
-#define CLAW_HEIGHT_RC_SEN 0.5f
+#define CLAW_HEIGHT_RC_SEN 0.1
 //键盘原生模式上升下降
 #define KEY_CHANGE_VALUE  50
 //上升高度
