@@ -50,7 +50,8 @@ typedef struct
     Gimbal_Motor_t gimbal_yaw_motor;
     Gimbal_Motor_t gimbal_pitch_motor;
     uint8_t cali_flag;
-		uint8_t fixed_flag;
+	uint8_t fixed_flag;
+    uint8_t turn_flag;
     GIMBAL_mode_e GIMBAL_mode;
 
 } Gimbal_Control_t;

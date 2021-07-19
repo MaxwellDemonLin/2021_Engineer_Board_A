@@ -60,7 +60,7 @@
 //底盘任务控制频率，尚未使用这个宏
 #define CHASSIS_CONTROL_FREQUENCE 500.0f
 //底盘3508最大can发送电流值
-#define MAX_MOTOR_CAN_CURRENT 16000.0f
+#define MAX_MOTOR_CAN_CURRENT 30000.0f
 //底盘摇摆按键
 #define SWING_KEY KEY_PRESSED_OFFSET_CTRL
 //底盘前后左右控制按键
@@ -74,13 +74,13 @@
 #define CHASSIS_MOTOR_RPM_TO_VECTOR_SEN M3508_MOTOR_RPM_TO_VECTOR
 
 //底盘电机最大速度
-#define MAX_WHEEL_SPEED 1.0f
+#define MAX_WHEEL_SPEED 4.0f
 //底盘运动过程最大前进速度
-#define NORMAL_MAX_CHASSIS_SPEED_X 0.8f
+#define NORMAL_MAX_CHASSIS_SPEED_X 2.0f
 //底盘运动过程最大平移速度
-#define NORMAL_MAX_CHASSIS_SPEED_Y 0.8f
+#define NORMAL_MAX_CHASSIS_SPEED_Y 2.0f
 //底盘设置旋转速度，设置前后左右轮不同设定速度的比例分权 0为在几何中心，不需要补偿
-#define CHASSIS_WZ_SET_SCALE 0.1f
+#define CHASSIS_WZ_SET_SCALE 0.0f
 
 //摇摆原地不动摇摆最大角度(rad)
 #define SWING_NO_MOVE_ANGLE 0.7f
@@ -110,7 +110,7 @@ typedef enum
 
   //  CHASSIS_AUTO,
   //  CHASSIS_FOLLOW_YAW,
-  //  CHASSIS_ENCODER,
+  CHASSIS_ENCODER,
   //  CHASSIS_NO_ACTION,
   //  CHASSIS_RELAX,
 } chassis_mode_e;
@@ -126,15 +126,15 @@ typedef struct
 
 typedef struct
 {
-  const RC_ctrl_t *chassis_RC;               //底盘使用的遥控器指针
- // const Gimbal_Motor_t *chassis_yaw_motor;   //底盘使用到yaw云台电机的相对角度来计算底盘的欧拉角
-//  const Gimbal_Motor_t *chassis_pitch_motor; //底盘使用到pitch云台电机的相对角度来计算底盘的欧拉角
-  const fp32 *chassis_INS_angle;             //获取陀螺仪解算出的欧拉角指针
-  chassis_mode_e chassis_mode;               //底盘控制状态机
-  chassis_mode_e last_chassis_mode;          //底盘上次控制状态机
-  Chassis_Motor_t motor_chassis[4];          //底盘电机数据
-  PidTypeDef motor_speed_pid[4];             //底盘电机速度pid
-  PidTypeDef chassis_angle_pid;              //底盘跟随角度pid
+  const RC_ctrl_t *chassis_RC;      //底盘使用的遥控器指针
+                                    // const Gimbal_Motor_t *chassis_yaw_motor;   //底盘使用到yaw云台电机的相对角度来计算底盘的欧拉角
+                                    //  const Gimbal_Motor_t *chassis_pitch_motor; //底盘使用到pitch云台电机的相对角度来计算底盘的欧拉角
+  const fp32 *chassis_INS_angle;    //获取陀螺仪解算出的欧拉角指针
+  chassis_mode_e chassis_mode;      //底盘控制状态机
+  chassis_mode_e last_chassis_mode; //底盘上次控制状态机
+  Chassis_Motor_t motor_chassis[4]; //底盘电机数据
+  PidTypeDef motor_speed_pid[4];    //底盘电机速度pid
+  PidTypeDef chassis_angle_pid;     //底盘跟随角度pid
 
   first_order_filter_type_t chassis_cmd_slow_set_vx;
   first_order_filter_type_t chassis_cmd_slow_set_vy;

@@ -44,8 +44,8 @@ void Lift_Rescue_task(void *pvParameters)
         Rescue_data_update(&rescue_control);
         Rescue_control_PID(&rescue_control);
 
-        // CAN_CMD_LIFTER_RESCUE(lift_control.given_current[0],lift_control.given_current[1] , rescue_control.given_current[0], rescue_control.given_current[1]);
-        CAN_CMD_LIFTER_RESCUE(0, 0, rescue_control.given_current[0], rescue_control.given_current[1]);
+     CAN_CMD_LIFTER_RESCUE(lift_control.given_current[0],lift_control.given_current[1] , rescue_control.given_current[0],  rescue_control.given_current[1]);
+      //  CAN_CMD_LIFTER_RESCUE(0, 0, rescue_control.given_current[0], rescue_control.given_current[1]);
         vTaskDelay(1);
     }
 }
@@ -66,8 +66,8 @@ void Lift_task_init(Lift_control_e *lift_control_init)
 
 static void Lift_set_mode(Lift_control_e *lift_control_mode_set)
 {
-    int32_t ecd_sum_set;
-    int32_t ecd_add;
+    static uint16_t cali_time = 0;
+
     if (lift_control_mode_set->cali_step == 0)
     {
         lift_control_mode_set->lift_mode = LIFT_CALI;
@@ -76,10 +76,26 @@ static void Lift_set_mode(Lift_control_e *lift_control_mode_set)
     if ((switch_is_down(lift_control_mode_set->lift_RC->rc.s[0])))
     {
         lift_control.lift_mode = LIFT_NO_FORCE;
+        return;
     }
     if ((switch_is_mid(lift_control_mode_set->lift_RC->rc.s[0])))
     {
         lift_control.lift_mode = LIFT_RAW;
+    }
+
+    if (lift_control_mode_set->lift_RC->key.v & RAW_DOWN_KEY && lift_control_mode_set->lift_RC->key.v & RAW_UP_KEY)
+    {
+        cali_time++;
+    }
+    if (!(lift_control_mode_set->lift_RC->key.v & RAW_DOWN_KEY && lift_control_mode_set->lift_RC->key.v & RAW_UP_KEY))
+    {
+        cali_time = 0;
+    }
+    if (cali_time == 1000)
+    {
+        lift_control_mode_set->cali_step = 0;
+        lift_control_mode_set->lift_mode = LIFT_CALI;
+        cali_time = 0;
     }
     /* static uint16_t cali_time = 0;
     if (time)
@@ -194,6 +210,7 @@ static void Lift_set_mode(Lift_control_e *lift_control_mode_set)
 static void lift_set_value(Lift_control_e *set_value)
 {
     int32_t ecd_add;
+
     if (set_value->lift_mode == LIFT_CALI)
     {
         Lift_cali(set_value);
@@ -204,32 +221,34 @@ static void lift_set_value(Lift_control_e *set_value)
         lift_rc_to_control_vector(&ecd_add, set_value);
         set_value->ecd_sum_set[0] += ecd_add;
         set_value->ecd_sum_set[1] -= ecd_add;
-
-        if (set_value->lift_RC->key.v & RAW_UP_KEY && !set_value->lift_RC->mouse.press_r)
+			if(!set_value->lift_RC->mouse.press_r)
+		{
+        if (set_value->lift_RC->key.v & RAW_UP_KEY && !(set_value->lift_RC->key.v & RAW_DOWN_KEY))
         {
             set_value->ecd_sum_set[0] += KEY_CHANGE_VALUE;
             set_value->ecd_sum_set[1] -= KEY_CHANGE_VALUE;
         }
-        else if (set_value->lift_RC->key.v & RAW_DOWN_KEY && !set_value->lift_RC->mouse.press_r)
+        else if (set_value->lift_RC->key.v & RAW_DOWN_KEY && !(set_value->lift_RC->key.v & RAW_UP_KEY))
         {
             set_value->ecd_sum_set[0] -= KEY_CHANGE_VALUE;
             set_value->ecd_sum_set[1] += KEY_CHANGE_VALUE;
         }
+		}
+		else{
 
-
-        if ((set_value->lift_RC->key.v & EXCHANGE_KEY) && set_value->lift_RC->mouse.press_r)
+        if (set_value->lift_RC->key.v & RAW_UP_KEY)
         {
             set_value->lift_mode = LIFT_EXCHANGE;
             set_value->ecd_sum_set[0] = set_value->down_sum_ecd[0] + EXCHANGE_HEIGHT_ECD;
             set_value->ecd_sum_set[1] = set_value->down_sum_ecd[1] - EXCHANGE_HEIGHT_ECD;
         }
-        else if ((set_value->lift_RC->key.v & LARGE_ISLAND_KEY) && set_value->lift_RC->mouse.press_r)
+        else if (set_value->lift_RC->key.v & RAW_DOWN_KEY)
         {
             set_value->lift_mode = LIFT_LARGE_RESOURCE_ISLAND;
             set_value->ecd_sum_set[0] = set_value->down_sum_ecd[0] + LARGE_ISLAND_HEIGHT_ECD;
             set_value->ecd_sum_set[1] = set_value->down_sum_ecd[1] - LARGE_ISLAND_HEIGHT_ECD;
         }
-        
+				}
 
         if (set_value->ecd_sum_set[0] < set_value->down_sum_ecd[0])
         {
@@ -275,7 +294,7 @@ static void lift_data_update(Lift_control_e *lift_update)
         {
             lift_update->motor_sum_ecd[i] = lift_update->lift_motor_measure[i]->count * ecd_range + lift_update->lift_motor_measure[i]->ecd;
         }
-        if (lift_update->lift_motor_measure[i]->count < 0)
+        if(lift_update->lift_motor_measure[i]->count < 0)
         {
             lift_update->motor_sum_ecd[i] = lift_update->lift_motor_measure[i]->count * ecd_range + lift_update->lift_motor_measure[i]->ecd;
         }
@@ -307,6 +326,9 @@ void Rescue_init(rescue_control_e *rescue_init)
 {
     fp32 rescue_speed_pid[3] = {RESCUE_SPEED_KP, RESCUE_SPEED_KI, RESCUE_SPEED_KD};
     fp32 rescue_count_pid[3] = {RESCUE_COUNT_KP, RESCUE_COUNT_KI, RESCUE_COUNT_KD};
+
+		fp32 rescue_speed_pid1[3] = {8, RESCUE_SPEED_KI, 0};
+    fp32 rescue_count_pid1[3] = {0.05, RESCUE_COUNT_KI, 0};
     rescue_init->rescue_RC = get_remote_control_point();
     rescue_init->rescue_motor_measure[0] = get_Rescue_Motor_Measure_Point(0);
     rescue_init->rescue_motor_measure[1] = get_Rescue_Motor_Measure_Point(1);
@@ -314,15 +336,15 @@ void Rescue_init(rescue_control_e *rescue_init)
     rescue_init->cali_step = 0;
 
     PID_Init(&rescue_init->rescue_speed_pid[0], PID_POSITION, rescue_speed_pid, RESCUE_SPEED_MAX_OUT, RESCUE_SPEED_MAX_IOUT);
-    PID_Init(&rescue_init->rescue_speed_pid[1], PID_POSITION, rescue_speed_pid, RESCUE_SPEED_MAX_OUT, RESCUE_SPEED_MAX_IOUT);
+    PID_Init(&rescue_init->rescue_speed_pid[1], PID_POSITION, rescue_speed_pid1, RESCUE_SPEED_MAX_OUT, RESCUE_SPEED_MAX_IOUT);
 
     PID_Init(&rescue_init->rescue_count_pid[0], PID_POSITION, rescue_count_pid, RESCUE_SPEED_MAX_OUT, RESCUE_SPEED_MAX_IOUT);
-    PID_Init(&rescue_init->rescue_count_pid[1], PID_POSITION, rescue_count_pid, RESCUE_SPEED_MAX_OUT, RESCUE_SPEED_MAX_IOUT);
+    PID_Init(&rescue_init->rescue_count_pid[1], PID_POSITION, rescue_count_pid1, RESCUE_SPEED_MAX_OUT, RESCUE_SPEED_MAX_IOUT);
     rescue_init->rescue_count_pid[0].derivative_output_filter_coefficient = exp(-0.5 * 1E-3);
     rescue_init->rescue_count_pid[0].proportion_output_filter_coefficient = exp(-50 * 1E-3);
 
     rescue_init->rescue_count_pid[1].derivative_output_filter_coefficient = exp(-0.5 * 1E-3);
-    rescue_init->rescue_count_pid[1].proportion_output_filter_coefficient = exp(-50 * 1E-3);
+    rescue_init->rescue_count_pid[1].proportion_output_filter_coefficient = exp(-10 * 1E-3);
 
     rescue_init->rescue_speed_pid[0].derivative_output_filter_coefficient = exp(-0.05 * 1E-3);
     rescue_init->rescue_speed_pid[0].proportion_output_filter_coefficient = exp(-400 * 1E-3);
@@ -348,7 +370,7 @@ static void Rescue_cali(rescue_control_e *rescue_cali)
         if (cali_time > RESCUE_CALI_TIME)
         {
             rescue_cali->open_ecd_set[0] = rescue_cali->motor_sum_ecd[0] - 2000;
-            rescue_cali->open_ecd_set[1] = rescue_cali->motor_sum_ecd[1] + 2000;
+            rescue_cali->open_ecd_set[1] = rescue_cali->motor_sum_ecd[1] + 8000;
 
             rescue_cali->close_ecd_set[0] = rescue_cali->motor_sum_ecd[0] - 80000;
             rescue_cali->close_ecd_set[1] = rescue_cali->motor_sum_ecd[1] + 80000;

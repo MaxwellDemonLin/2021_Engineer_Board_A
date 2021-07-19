@@ -20,20 +20,15 @@ void Gimbal_Task(void *pvParameters)
         GIMBAL_data_update(&gimbal_control);
         GIMBAL_set_control(&gimbal_control);
         GIMBAL_PID_Cali(&gimbal_control);
-        if (gimbal_control.GIMBAL_mode != NO_FORCE)
-        {
-            CAN_CMD_GIMBAL(gimbal_control.gimbal_yaw_motor.given_current, gimbal_control.gimbal_pitch_motor.given_current);
-        }
-        else if (gimbal_control.GIMBAL_mode == NO_FORCE)
-        {
-            CAN_CMD_GIMBAL(0, 0);
-        }
+
+           CAN_CMD_GIMBAL(gimbal_control.gimbal_yaw_motor.given_current, gimbal_control.gimbal_pitch_motor.given_current);
+        
+
         vTaskDelay(2);
     }
 }
 void GIMBAL_Init(Gimbal_Control_t *gimbal_init)
 {
-
     fp32 gimbal_speed_pid[3] = {GIMBAL_SPEED_KP, GIMBAL_SPEED_KI, GIMBAL_SPEED_KD};
     fp32 gimbal_ecd_pid[3] = {GIMBAL_ECD_KP, GIMBAL_ECD_KI, GIMBAL_ECD_KD};
     PID_Init(&gimbal_init->gimbal_pitch_motor.gimbal_ecd_pid, PID_POSITION, gimbal_ecd_pid, GIMBAL_ECD_MAX_OUT, GIMBAL_ECD_MAX_IOUT);
@@ -61,20 +56,20 @@ void GIMBAL_data_update(Gimbal_Control_t *gimbal_update)
 {
     if (&gimbal_update->gimbal_pitch_motor.gimbal_motor_measure->ecd >= 0)
     {
-        gimbal_update->gimbal_pitch_motor.ecd_sum = gimbal_update->gimbal_pitch_motor.gimbal_motor_measure->ecd * 8191 + gimbal_update->gimbal_pitch_motor.gimbal_motor_measure->ecd;
+        gimbal_update->gimbal_pitch_motor.ecd_sum = gimbal_update->gimbal_pitch_motor.gimbal_motor_measure->count * 8191 + gimbal_update->gimbal_pitch_motor.gimbal_motor_measure->ecd;
     }
     else if (&gimbal_update->gimbal_pitch_motor.gimbal_motor_measure->ecd < 0)
     {
-        gimbal_update->gimbal_pitch_motor.ecd_sum = gimbal_update->gimbal_pitch_motor.gimbal_motor_measure->ecd * 8191 + gimbal_update->gimbal_pitch_motor.gimbal_motor_measure->ecd;
+        gimbal_update->gimbal_pitch_motor.ecd_sum = gimbal_update->gimbal_pitch_motor.gimbal_motor_measure->count * 8191 + gimbal_update->gimbal_pitch_motor.gimbal_motor_measure->ecd;
     }
 
     if (&gimbal_update->gimbal_yaw_motor.gimbal_motor_measure->ecd >= 0)
     {
-        gimbal_update->gimbal_yaw_motor.ecd_sum = gimbal_update->gimbal_yaw_motor.gimbal_motor_measure->ecd * 8191 + gimbal_update->gimbal_yaw_motor.gimbal_motor_measure->ecd;
+        gimbal_update->gimbal_yaw_motor.ecd_sum = gimbal_update->gimbal_yaw_motor.gimbal_motor_measure->count * 8191 + gimbal_update->gimbal_yaw_motor.gimbal_motor_measure->ecd;
     }
     else if (&gimbal_update->gimbal_yaw_motor.gimbal_motor_measure->ecd < 0)
     {
-        gimbal_update->gimbal_yaw_motor.ecd_sum = gimbal_update->gimbal_yaw_motor.gimbal_motor_measure->ecd * 8191 + gimbal_update->gimbal_yaw_motor.gimbal_motor_measure->ecd;
+        gimbal_update->gimbal_yaw_motor.ecd_sum = gimbal_update->gimbal_yaw_motor.gimbal_motor_measure->count * 8191 + gimbal_update->gimbal_yaw_motor.gimbal_motor_measure->ecd;
     }
 }
 void GIMBAL_set_control(Gimbal_Control_t *gimbal_set_control)
@@ -82,7 +77,7 @@ void GIMBAL_set_control(Gimbal_Control_t *gimbal_set_control)
     fp32 rc_add_yaw;
     fp32 rc_add_pitch;
 
-    uint16_t time = 200;
+    static uint16_t time = 200;
     if (time)
     {
         time--;
@@ -94,10 +89,12 @@ void GIMBAL_set_control(Gimbal_Control_t *gimbal_set_control)
             if (gimbal_set_control->fixed_flag == 1)
             {
                 gimbal_set_control->fixed_flag = 0;
+								time=200;
             }
-            if (gimbal_set_control->fixed_flag == 0)
+            else if (gimbal_set_control->fixed_flag == 0)
             {
                 gimbal_set_control->fixed_flag = 1;
+								time=200;
             }
         }
     }
@@ -107,8 +104,8 @@ void GIMBAL_set_control(Gimbal_Control_t *gimbal_set_control)
     }
     if (gimbal_control.fixed_flag == 0)
     {
-        rc_add_yaw = gimbal_set_control->gimbal_rc_ctrl->mouse.x * 0.002;
-        rc_add_pitch = gimbal_set_control->gimbal_rc_ctrl->mouse.y * 0.002;
+        rc_add_yaw = -gimbal_set_control->gimbal_rc_ctrl->mouse.x * 1;
+        rc_add_pitch = -gimbal_set_control->gimbal_rc_ctrl->mouse.y * 1;
 
         gimbal_set_control->gimbal_yaw_motor.ecd_sum_set += rc_add_yaw;
         gimbal_set_control->gimbal_pitch_motor.ecd_sum_set += rc_add_pitch;
@@ -168,3 +165,4 @@ static void GIMBAL_PID_Cali(Gimbal_Control_t *gimbal_PID_cali)
     gimbal_PID_cali->gimbal_pitch_motor.given_current = (int16_t)PID_Calc(&gimbal_PID_cali->gimbal_pitch_motor.gimbal_speed_pid, gimbal_PID_cali->gimbal_pitch_motor.gimbal_motor_measure->speed_rpm, pitch_speed_set);
     gimbal_PID_cali->gimbal_yaw_motor.given_current = (int16_t)PID_Calc(&gimbal_PID_cali->gimbal_yaw_motor.gimbal_speed_pid, gimbal_PID_cali->gimbal_yaw_motor.gimbal_motor_measure->speed_rpm, yaw_speed_set);
 }
+

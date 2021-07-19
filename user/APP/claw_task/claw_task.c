@@ -26,18 +26,18 @@ void Claw_task(void *pvParameters)
         claw_data_update(&claw_control);
         Claw_set_mode(&claw_control);
         claw_control_PID(&claw_control);
-	
+
         if (claw_control.claw_mode != CLAW_NO_FORCE && claw_control.claw_mode != CLAW_CALI)
         {
-            CAN_CMD_CLAW(claw_control.given_current[0], claw_control.given_current[1]);
-//						CAN_CMD_CLAW(2000, -2000);
+							CAN_CMD_CLAW(claw_control.given_current[0], claw_control.given_current[1]);
+            //						CAN_CMD_CLAW(2000, -2000);
         }
-  
+
         else if (claw_control.claw_mode == CLAW_NO_FORCE)
         {
             CAN_CMD_CLAW(0, 0);
         }
-	
+
         vTaskDelay(2);
     }
 }
@@ -76,9 +76,9 @@ static void Claw_set_mode(Claw_control_e *claw_control_mode_set)
     {
         return;
     }
-    if (switch_is_up(claw_control_mode_set->claw_RC->rc.s[0]))
+    if (switch_is_mid(claw_control_mode_set->claw_RC->rc.s[0]))
     {
-				claw_control_mode_set->claw_mode = CLAW_RAW;
+        claw_control_mode_set->claw_mode = CLAW_RAW;
         if (claw_control_mode_set->claw_RC->key.v & RAW_FORWARD_KEY && claw_control_mode_set->claw_RC->key.v & RAW_BACKWARS_KEY)
         {
             cali_time++;
@@ -104,7 +104,9 @@ static void Claw_set_mode(Claw_control_e *claw_control_mode_set)
 
             if (claw_control.cali_step == 1)
             {
-                if (claw_control_mode_set->claw_RC->key.v & KEY_PRESSED_OFFSET_G && claw_control_mode_set->claw_RC->mouse.press_r)
+								if(claw_control_mode_set->claw_RC->mouse.press_r)
+							{
+                if ((claw_control_mode_set->claw_RC->key.v & KEY_PRESSED_OFFSET_G)&& (!(claw_control_mode_set->claw_RC->key.v & KEY_PRESSED_OFFSET_B)))
                 {
                     if (claw_control_mode_set->cali_flag)
                     {
@@ -112,9 +114,9 @@ static void Claw_set_mode(Claw_control_e *claw_control_mode_set)
                         claw_control_mode_set->ecd_sum_set[0] = claw_control_mode_set->down_sum_ecd[0] - FORWARD_HORIZONTAL;
                         claw_control_mode_set->ecd_sum_set[1] = claw_control_mode_set->down_sum_ecd[1] + FORWARD_HORIZONTAL;
                     }
-                    cali_time = 0;
+                    time = 0;
                 }
-                if (claw_control_mode_set->claw_RC->key.v & KEY_PRESSED_OFFSET_B && claw_control_mode_set->claw_RC->mouse.press_r)
+                if ((claw_control_mode_set->claw_RC->key.v & KEY_PRESSED_OFFSET_B) && (!(claw_control_mode_set->claw_RC->key.v & KEY_PRESSED_OFFSET_G)))
                 {
                     if (claw_control_mode_set->cali_flag)
                     {
@@ -122,40 +124,47 @@ static void Claw_set_mode(Claw_control_e *claw_control_mode_set)
                         claw_control_mode_set->ecd_sum_set[0] = claw_control_mode_set->down_sum_ecd[0] - BACKWARD_HORIONT;
                         claw_control_mode_set->ecd_sum_set[1] = claw_control_mode_set->down_sum_ecd[1] + BACKWARD_HORIONT;
                     }
-                    cali_time = 0;
+                    time = 0;
+                }
+							}
+                if(claw_control_mode_set->claw_RC->key.v & KEY_PRESSED_OFFSET_V)
+                {
+                    
                 }
             }
         }
-		}
-		  if (switch_is_mid(claw_control_mode_set->claw_RC->rc.s[0]))
-			{
-							claw_control_mode_set->claw_mode = CLAW_RAW;
-				 claw_rc_to_control_vector(&ecd_add, claw_control_mode_set);
-         claw_control_mode_set->ecd_sum_set[0] += ecd_add;
-         claw_control_mode_set->ecd_sum_set[1] -= ecd_add;
-			}
-        if (switch_is_down(claw_control_mode_set->claw_RC->rc.s[0]))
-        {
-            claw_control_mode_set->claw_mode = CLAW_NO_FORCE;
-          //  claw_control_mode_set->ecd_sum_set[0] = claw_control_mode_set->down_sum_ecd[0]; //为了防止有力无力切换时上升发生抖动，因此将设定值设置为0
-           // claw_control_mode_set->ecd_sum_set[1] = claw_control_mode_set->down_sum_ecd[1];
-        }
-    
+    }
+    if (switch_is_mid(claw_control_mode_set->claw_RC->rc.s[0]))
+    {
+        claw_control_mode_set->claw_mode = CLAW_RAW;
+        claw_rc_to_control_vector(&ecd_add, claw_control_mode_set);
+        claw_control_mode_set->ecd_sum_set[0] += ecd_add;
+        claw_control_mode_set->ecd_sum_set[1] -= ecd_add;
+    }
+    if (switch_is_down(claw_control_mode_set->claw_RC->rc.s[0]))
+    {
+        claw_control_mode_set->claw_mode = CLAW_NO_FORCE;
+        //  claw_control_mode_set->ecd_sum_set[0] = claw_control_mode_set->down_sum_ecd[0]; //为了防止有力无力切换时上升发生抖动，因此将设定值设置为0
+        // claw_control_mode_set->ecd_sum_set[1] = claw_control_mode_set->down_sum_ecd[1];
+    }
 }
 static void claw_rc_to_control_vector(int32_t *ecd, Claw_control_e *claw_rc_to_vector)
 {
     fp32 ecd_channel;
     rc_deadline_limit(claw_rc_to_vector->claw_RC->rc.ch[4], ecd_channel, 10);
     int32_t ecd_add = 0;
-    ecd_add = claw_rc_to_vector->claw_RC->rc.ch[4] * CLAW_HEIGHT_RC_SEN;
-    if (claw_rc_to_vector->claw_RC->key.v & RAW_BACKWARS_KEY && !claw_rc_to_vector->claw_RC->key.v & RAW_FORWARD_KEY && !claw_rc_to_vector->claw_RC->mouse.press_r)
+    ecd_add =(int32_t)(ecd_channel * CLAW_HEIGHT_RC_SEN);
+if( !claw_rc_to_vector->claw_RC->mouse.press_r)
+{
+    if (claw_rc_to_vector->claw_RC->key.v & RAW_BACKWARS_KEY && !(claw_rc_to_vector->claw_RC->key.v & RAW_FORWARD_KEY ))
     {
-        ecd_add = 100;
+        ecd_add = 10;
     }
-    if (claw_rc_to_vector->claw_RC->key.v & RAW_FORWARD_KEY && !claw_rc_to_vector->claw_RC->key.v & RAW_BACKWARS_KEY&& !claw_rc_to_vector->claw_RC->mouse.press_r)
+    if (claw_rc_to_vector->claw_RC->key.v & RAW_FORWARD_KEY && !(claw_rc_to_vector->claw_RC->key.v & RAW_BACKWARS_KEY ))
     {
-        ecd_add = -100;
+        ecd_add = -10;
     }
+}
     if (claw_rc_to_vector->cali_flag == 1)
     {
         if (ecd_add > 0)

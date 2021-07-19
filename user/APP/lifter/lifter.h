@@ -20,7 +20,7 @@ void Lift_Rescue_task(void *pvParameters);
 
 #define LIFT_HEIGHT_RC_SEN 0.5f
 
-#define KEY_CHANGE_VALUE  1
+#define KEY_CHANGE_VALUE  100
 
 #define LOOT_HEIGHT_ECD           10000
 #define LARGE_ISLAND_HEIGHT_ECD   57670
@@ -118,7 +118,7 @@ typedef enum
 #define Half_ecd_range 4096
 #define ecd_range 8191
 
-#define RESCUE_COUNT_KP 0.15
+#define RESCUE_COUNT_KP 0.05
 #define RESCUE_COUNT_KI 0
 #define RESCUE_COUNT_KD 200
 #define RESCUE_COUNT_MAX_OUT 10000

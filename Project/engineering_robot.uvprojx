@@ -819,6 +819,11 @@
               <FilePath>..\user\APP\detect_task\detect_task.c</FilePath>
             </File>
             <File>
+              <FileName>lifter.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\user\APP\lifter\lifter.c</FilePath>
+            </File>
+            <File>
               <FileName>CAN_receive.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\user\APP\CAN_receive\CAN_receive.c</FilePath>
@@ -857,11 +862,6 @@
               <FileName>user_task.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\user\APP\user_task\user_task.c</FilePath>
-            </File>
-            <File>
-              <FileName>lifter.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\user\APP\lifter\lifter.c</FilePath>
             </File>
             <File>
               <FileName>chassis_task.c</FileName>

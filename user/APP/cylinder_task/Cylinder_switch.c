@@ -42,9 +42,9 @@ void Cylinder_switch_init(void)
 	Cylinder_switch.Cylinder2 = 0;
 	Cylinder_switch.Cylinder3 = 0;
 	Cylinder_switch.cylinder_rc_ctrl = get_remote_control_point();
-	Cylinder1_Open;
-	Cylinder2_Open;
-	Cylinder3_Open;
+	Cylinder1_Close;
+	Cylinder2_Close;
+	Cylinder3_Close;
 }
 void Cylinder_switch_control(void)
 {
@@ -63,24 +63,24 @@ void Cylinder_switch_control(void)
 		}
 		if (Cylinder_switch.cylinder_rc_ctrl->key.v & KEY_PRESSED_OFFSET_X)
 		{
-			Cylinder2_TOGGLE;
-			Cylinder_switch.Cylinder2 = !Cylinder_switch.Cylinder2;
-			time = 100;
-		}
-		if (Cylinder_switch.cylinder_rc_ctrl->key.v & KEY_PRESSED_OFFSET_R && Cylinder_switch.cylinder_rc_ctrl->mouse.press_r)
-		{
 			Cylinder3_TOGGLE;
 			Cylinder_switch.Cylinder3 = !Cylinder_switch.Cylinder3;
 			time = 100;
 		}
-	}
-	if(Cylinder_switch.claw->cali_flag==1)
-	{
-		if(Cylinder_switch.claw->motor_sum_ecd[0]<Cylinder_switch.claw->down_sum_ecd[0]-25000)
+		if (Cylinder_switch.cylinder_rc_ctrl->key.v & KEY_PRESSED_OFFSET_R && Cylinder_switch.cylinder_rc_ctrl->mouse.press_r)
 		{
-			Cylinder1_Close;
+			Cylinder2_TOGGLE;
+			Cylinder_switch.Cylinder2 = !Cylinder_switch.Cylinder2;
+			time = 100;
 		}
 	}
+//	if(Cylinder_switch.claw->cali_flag==1)
+//	{
+//		if(Cylinder_switch.claw->motor_sum_ecd[0]>Cylinder_switch.claw->down_sum_ecd[0]-25000)
+//		{
+//			Cylinder1_Close;
+//		}
+//	}
 }
 const Cylinder_switch_t *get_Cylinder_switch_Measure_Point(void)
 {
