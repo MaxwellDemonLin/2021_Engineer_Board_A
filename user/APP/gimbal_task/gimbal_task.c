@@ -21,7 +21,7 @@ void Gimbal_Task(void *pvParameters)
         GIMBAL_set_control(&gimbal_control);
         GIMBAL_PID_Cali(&gimbal_control);
 
-           CAN_CMD_GIMBAL(gimbal_control.gimbal_yaw_motor.given_current, gimbal_control.gimbal_pitch_motor.given_current);
+            CAN_CMD_GIMBAL(gimbal_control.gimbal_yaw_motor.given_current, gimbal_control.gimbal_pitch_motor.given_current);
         
 
         vTaskDelay(2);

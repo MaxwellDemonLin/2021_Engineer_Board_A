@@ -1,6 +1,7 @@
 #include "exit_init.h"
 #include "lifter.h"
 #include "stm32f4xx.h"
+#include "claw_task.h"
 extern rescue_control_e rescue_control;
 uint32_t cnt;
 void EXTI_Key1_Config(void);

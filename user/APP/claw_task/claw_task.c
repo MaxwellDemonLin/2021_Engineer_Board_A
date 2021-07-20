@@ -6,8 +6,10 @@
 #include "FreeRTOSConfig.h"
 #include "FreeRTOS.h"
 #include "task.h"
+#include "math.h"
 
 Claw_control_e claw_control;
+rescue_control_e rescue_control;
 void Claw_task_init(Claw_control_e *claw_control_init); //初始化函�?
 void claw_rc_to_control_vector(int32_t *ecd, Claw_control_e *claw_rc_to_vector);
 static void claw_data_update(Claw_control_e *claw_update);
@@ -17,26 +19,34 @@ static void Claw_set_mode(Claw_control_e *claw_control_mode_set);
 //static void claw_set_height(Claw_control_e *claw_control_set_control);
 static void Claw_cali(Claw_control_e *Claw_cali);
 static void timer(Claw_control_e *Claw_cali);
+
+
+
+void Rescue_init(rescue_control_e *rescue_init);
+static void Rescue_data_update(rescue_control_e *rescue_update);
+static void Rescue_cali(rescue_control_e *rescue_cail);
+static void Rescue_mode_set(rescue_control_e *rescue_mode_set);
+static void Rescue_control_PID(rescue_control_e *rescue_calc);
+
 void Claw_task(void *pvParameters)
 {
 
     Claw_task_init(&claw_control);
+		Rescue_init(&rescue_control);
+		
     while (1)
     {
         claw_data_update(&claw_control);
         Claw_set_mode(&claw_control);
         claw_control_PID(&claw_control);
 
-        if (claw_control.claw_mode != CLAW_NO_FORCE && claw_control.claw_mode != CLAW_CALI)
-        {
-							CAN_CMD_CLAW(claw_control.given_current[0], claw_control.given_current[1]);
-            //						CAN_CMD_CLAW(2000, -2000);
-        }
+				
+				Rescue_mode_set	(&rescue_control);
+				Rescue_data_update(&rescue_control);
+				Rescue_control_PID(&rescue_control);
+					
+				CAN_CMD_CLAW(claw_control.given_current[0], claw_control.given_current[1],rescue_control.given_current[0],rescue_control.given_current[1]);
 
-        else if (claw_control.claw_mode == CLAW_NO_FORCE)
-        {
-            CAN_CMD_CLAW(0, 0);
-        }
 
         vTaskDelay(2);
     }
@@ -226,7 +236,8 @@ static void Claw_cali(Claw_control_e *Claw_cali)
     static uint16_t cali_time = 0;
     if (Claw_cali->cali_step == 0)
     {
-        CAN_CMD_CLAW(-CLAW_CALI_CURRENT_DOWN, CLAW_CALI_CURRENT_DOWN);
+     Claw_cali->given_current[0]=CLAW_CALI_CURRENT_UP;	
+		 Claw_cali->given_current[1]=-CLAW_CALI_CURRENT_UP;
         if (Claw_cali->claw_motor_measure[0]->ecd == Claw_cali->claw_motor_measure[0]->last_ecd)
         {
             cali_time++;
@@ -250,3 +261,151 @@ const Claw_control_e *get_claw_measure(void)
 {
     return &claw_control;
 }
+
+
+
+
+void Rescue_init(rescue_control_e *rescue_init)
+{
+    fp32 rescue_speed_pid[3] = {RESCUE_SPEED_KP, RESCUE_SPEED_KI, RESCUE_SPEED_KD};
+    fp32 rescue_count_pid[3] = {RESCUE_COUNT_KP, RESCUE_COUNT_KI, RESCUE_COUNT_KD};
+
+	//	fp32 rescue_speed_pid1[3] = {8, RESCUE_SPEED_KI, 0};
+  //  fp32 rescue_count_pid1[3] = {0.05, RESCUE_COUNT_KI, 0};
+    rescue_init->rescue_RC = get_remote_control_point();
+    rescue_init->rescue_motor_measure[0] = get_Rescue_Motor_Measure_Point(0);
+    rescue_init->rescue_motor_measure[1] = get_Rescue_Motor_Measure_Point(1);
+
+    rescue_init->cali_step = 0;
+
+    PID_Init(&rescue_init->rescue_speed_pid[0], PID_POSITION, rescue_speed_pid, RESCUE_SPEED_MAX_OUT, RESCUE_SPEED_MAX_IOUT);
+    PID_Init(&rescue_init->rescue_speed_pid[1], PID_POSITION, rescue_speed_pid, RESCUE_SPEED_MAX_OUT, RESCUE_SPEED_MAX_IOUT);
+
+    PID_Init(&rescue_init->rescue_count_pid[0], PID_POSITION, rescue_count_pid, RESCUE_SPEED_MAX_OUT, RESCUE_SPEED_MAX_IOUT);
+    PID_Init(&rescue_init->rescue_count_pid[1], PID_POSITION, rescue_count_pid, RESCUE_SPEED_MAX_OUT, RESCUE_SPEED_MAX_IOUT);
+    rescue_init->rescue_count_pid[0].derivative_output_filter_coefficient = exp(-0.5 * 1E-3);
+    rescue_init->rescue_count_pid[0].proportion_output_filter_coefficient = exp(-50 * 1E-3);
+
+    rescue_init->rescue_count_pid[1].derivative_output_filter_coefficient = exp(-0.5 * 1E-3);
+    rescue_init->rescue_count_pid[1].proportion_output_filter_coefficient = exp(-10 * 1E-3);
+
+    rescue_init->rescue_speed_pid[0].derivative_output_filter_coefficient = exp(-0.05 * 1E-3);
+    rescue_init->rescue_speed_pid[0].proportion_output_filter_coefficient = exp(-400 * 1E-3);
+
+    rescue_init->rescue_speed_pid[1].derivative_output_filter_coefficient = exp(-0.05 * 1E-3);
+    rescue_init->rescue_speed_pid[1].proportion_output_filter_coefficient = exp(-400 * 1E-3);
+
+    rescue_init->Claw_mode[0] = OPEN;
+    rescue_init->Claw_mode[1] = OPEN;
+}
+
+
+
+static void Rescue_cali(rescue_control_e *rescue_cali)
+{
+    static uint16_t cali_time = 0;
+    rescue_cali->given_current[0] = 1500;
+    rescue_cali->given_current[1] = -1500;
+    if (rescue_cali->cali_step == 0)
+    {
+        if (rescue_cali->rescue_motor_measure[0]->ecd == rescue_cali->rescue_motor_measure[0]->last_ecd)
+        {
+            cali_time++;
+        }
+        if (cali_time > RESCUE_CALI_TIME)
+        {
+            rescue_cali->open_ecd_set[0] = rescue_cali->motor_sum_ecd[0] - 8000;
+            rescue_cali->open_ecd_set[1] = rescue_cali->motor_sum_ecd[1] + 8000;
+
+            rescue_cali->close_ecd_set[0] = rescue_cali->motor_sum_ecd[0] - 92000;
+            rescue_cali->close_ecd_set[1] = rescue_cali->motor_sum_ecd[1] + 80000;
+            rescue_cali->cali_step++;
+            cali_time = 0;
+        }
+    }
+}
+
+static void Rescue_data_update(rescue_control_e *rescue_update)
+{
+    uint8_t i = 0;
+    for (i = 0; i <= 1; i++)
+    {
+        if (rescue_update->rescue_motor_measure[i]->count >= 0)
+        {
+            rescue_update->motor_sum_ecd[i] = rescue_update->rescue_motor_measure[i]->count * 8191 + rescue_update->rescue_motor_measure[i]->ecd;
+        }
+        if (rescue_update->rescue_motor_measure[i]->count < 0)
+        {
+            rescue_update->motor_sum_ecd[i] = (rescue_update->rescue_motor_measure[i]->count + 1) * 8191 - (8191 - rescue_update->rescue_motor_measure[i]->ecd);
+        }
+    }
+}
+
+static void Rescue_mode_set(rescue_control_e *rescue_mode_set)
+{
+    static uint8_t key_rescue_flag = 0;
+    static uint8_t key_rescue_time = 0;
+    if (rescue_mode_set->cali_step == 0)
+    {
+        Rescue_cali(rescue_mode_set);
+        return;
+    }
+
+    if (key_rescue_time)
+    {
+        key_rescue_time--;
+    }
+    if (rescue_mode_set->Claw_mode[0] == OPEN && rescue_mode_set->close_flag[0] == 1)
+    {
+        rescue_mode_set->Claw_mode[0] = CLOSE;
+    }
+    if (rescue_mode_set->Claw_mode[1] == OPEN && rescue_mode_set->close_flag[1] == 1)
+    {
+        rescue_mode_set->Claw_mode[1] = CLOSE;
+    }
+    if (!key_rescue_time)
+    {
+        if (key_rescue_flag)
+        {
+            if (rescue_mode_set->rescue_RC->key.v & RESCUE_KEY && !(rescue_mode_set->rescue_RC->mouse.press_r))
+            {
+                rescue_mode_set->Claw_mode[0] = OPEN;
+                rescue_mode_set->Claw_mode[1] = OPEN;
+                key_rescue_time = 200;
+                key_rescue_flag = 0;
+            }
+        }
+        else if (!key_rescue_flag)
+        {
+            if (rescue_mode_set->rescue_RC->key.v & RESCUE_KEY && !(rescue_mode_set->rescue_RC->mouse.press_r))
+            {
+                rescue_mode_set->Claw_mode[0] = CLOSE;
+                rescue_mode_set->Claw_mode[1] = CLOSE;
+                key_rescue_time = 200;
+                key_rescue_flag = 1;
+            }
+        }
+    }
+}
+static void Rescue_control_PID(rescue_control_e *rescue_calc)
+{
+    if (rescue_calc->cali_step == 0)
+    {
+        return;
+    }
+    uint8_t i = 0;
+    for (i = 0; i <= 1; i++)
+    {
+        if (rescue_calc->Claw_mode[i] == OPEN)
+        {
+            PID_Calc(&rescue_calc->rescue_count_pid[i], rescue_calc->motor_sum_ecd[i], rescue_calc->open_ecd_set[i]);
+            rescue_calc->given_current[i] = PID_Calc(&rescue_calc->rescue_speed_pid[i], (fp32)rescue_calc->rescue_motor_measure[i]->speed_rpm, rescue_calc->rescue_count_pid[i].out);
+        }
+        else if (rescue_calc->Claw_mode[i] == CLOSE)
+        {
+            PID_Calc(&rescue_calc->rescue_count_pid[i], rescue_calc->motor_sum_ecd[i], rescue_calc->close_ecd_set[i]);
+            rescue_calc->given_current[i] = PID_Calc(&rescue_calc->rescue_speed_pid[i], (fp32)rescue_calc->rescue_motor_measure[i]->speed_rpm, rescue_calc->rescue_count_pid[i].out);
+        }
+    }
+}
+

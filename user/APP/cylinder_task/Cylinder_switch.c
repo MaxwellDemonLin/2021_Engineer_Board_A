@@ -63,14 +63,14 @@ void Cylinder_switch_control(void)
 		}
 		if (Cylinder_switch.cylinder_rc_ctrl->key.v & KEY_PRESSED_OFFSET_X)
 		{
-			Cylinder3_TOGGLE;
-			Cylinder_switch.Cylinder3 = !Cylinder_switch.Cylinder3;
+			Cylinder2_TOGGLE;
+			Cylinder_switch.Cylinder2 = !Cylinder_switch.Cylinder2;
 			time = 100;
 		}
 		if (Cylinder_switch.cylinder_rc_ctrl->key.v & KEY_PRESSED_OFFSET_R && Cylinder_switch.cylinder_rc_ctrl->mouse.press_r)
 		{
-			Cylinder2_TOGGLE;
-			Cylinder_switch.Cylinder2 = !Cylinder_switch.Cylinder2;
+			Cylinder3_TOGGLE;
+			Cylinder_switch.Cylinder3 = !Cylinder_switch.Cylinder3;
 			time = 100;
 		}
 	}
