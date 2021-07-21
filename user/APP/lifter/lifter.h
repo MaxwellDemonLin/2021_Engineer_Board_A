@@ -43,7 +43,7 @@ void Lift_Rescue_task(void *pvParameters);
 #define LIFT_COUNT_MAX_OUT 2500
 #define LIFT_COUNT_MAX_IOUT 5
 
-#define FULL_RANGE 380000
+#define FULL_RANGE 400000
 
 #define LIFT_CALI_CURRENT_DOWN   2500 
 #define LIFT_CALI_CURRENT_UP		 500

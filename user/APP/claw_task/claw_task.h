@@ -16,7 +16,7 @@ void Claw_task(void *pvParameters);
 #define KEY_CHANGE_VALUE 50
 //上升高度
 #define FORWARD_HORIZONTAL 80000
-#define BACKWARD_HORIONT 15000
+#define BACKWARD_HORIONT 10000
 #define VERTICAL_DOWN 10000
 //编码器范�?
 #define Half_ecd_range 4096

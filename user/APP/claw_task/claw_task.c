@@ -142,7 +142,7 @@ static void Claw_set_mode(Claw_control_e *claw_control_mode_set)
                     
                 }
             }
-        }
+        } 	
     }
     if (switch_is_mid(claw_control_mode_set->claw_RC->rc.s[0]))
     {
@@ -168,11 +168,11 @@ if( !claw_rc_to_vector->claw_RC->mouse.press_r)
 {
     if (claw_rc_to_vector->claw_RC->key.v & RAW_BACKWARS_KEY && !(claw_rc_to_vector->claw_RC->key.v & RAW_FORWARD_KEY ))
     {
-        ecd_add = 10;
+        ecd_add = 30;
     }
     if (claw_rc_to_vector->claw_RC->key.v & RAW_FORWARD_KEY && !(claw_rc_to_vector->claw_RC->key.v & RAW_BACKWARS_KEY ))
     {
-        ecd_add = -10;
+        ecd_add = -30;
     }
 }
     if (claw_rc_to_vector->cali_flag == 1)
@@ -197,6 +197,7 @@ if( !claw_rc_to_vector->claw_RC->mouse.press_r)
         }
         *ecd = ecd_add;
     }
+
     else
         *ecd = ecd_add;
 }
