@@ -305,7 +305,7 @@ void Rescue_init(rescue_control_e *rescue_init)
 static void Rescue_cali(rescue_control_e *rescue_cali)
 {
     static uint16_t cali_time = 0;
-    rescue_cali->given_current[0] = 1500;
+    rescue_cali->given_current[0] = 1800;
     rescue_cali->given_current[1] = -1500;
     if (rescue_cali->cali_step == 0)
     {
@@ -318,7 +318,7 @@ static void Rescue_cali(rescue_control_e *rescue_cali)
             rescue_cali->open_ecd_set[0] = rescue_cali->motor_sum_ecd[0] - 8000;
             rescue_cali->open_ecd_set[1] = rescue_cali->motor_sum_ecd[1] + 8000;
 
-            rescue_cali->close_ecd_set[0] = rescue_cali->motor_sum_ecd[0] - 92000;
+            rescue_cali->close_ecd_set[0] = rescue_cali->motor_sum_ecd[0] - 80000;
             rescue_cali->close_ecd_set[1] = rescue_cali->motor_sum_ecd[1] + 80000;
             rescue_cali->cali_step++;
             cali_time = 0;

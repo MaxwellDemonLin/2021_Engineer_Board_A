@@ -57,7 +57,8 @@ void Cylinder_switch_control(void)
 	{
 		if (Cylinder_switch.cylinder_rc_ctrl->mouse.press_l)
 		{
-			Cylinder1_TOGGLE;
+
+					Cylinder1_TOGGLE;
 			Cylinder_switch.Cylinder1 = !Cylinder_switch.Cylinder1;
 			time = 100;
 		}
@@ -76,7 +77,7 @@ void Cylinder_switch_control(void)
 	}
 //	if(Cylinder_switch.claw->cali_flag==1)
 //	{
-//		if(Cylinder_switch.claw->motor_sum_ecd[0]>Cylinder_switch.claw->down_sum_ecd[0]-25000)
+//		if(Cylinder_switch.claw->motor_sum_ecd[0]>Cylinder_switch.claw->down_sum_ecd[0]-25000&&Cylinder_switch.lift->)
 //		{
 //			Cylinder1_Close;
 //		}

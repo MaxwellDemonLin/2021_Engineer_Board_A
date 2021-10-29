@@ -307,3 +307,7 @@ static void Lift_cali(Lift_control_e *Lift_cali)
         Lift_cali->lift_mode = LIFT_RAW;
     }
 }
+const Lift_control_e get_lift_measure(void)
+{
+		
+}

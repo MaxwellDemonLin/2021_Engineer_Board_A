@@ -4,7 +4,7 @@
 #include "stm32f4xx.h"
 #include "Remote_Control.h"
 #include "claw_task.h"
-
+#include "lifter.h"
 
 #define Cylinder1_PIN                  GPIO_Pin_0                 
 #define Cylinder1_GPIO_PORT            GPIOB                      
@@ -46,6 +46,7 @@ typedef struct
     uint8_t Cylinder3;
 		const RC_ctrl_t *cylinder_rc_ctrl;
 		const Claw_control_e *claw;
+		const Lift_control_e *lift;
 } Cylinder_switch_t;
 
 void Cylinder_GPIO_Config(void);
