@@ -1,14 +1,14 @@
-XJTLU¹¤³Ì´úÂë
-CMSIS£ºÄÚºËÏà¹ØµÄÎÄ¼ş
-FWLIB£º±ê×¼¿âÎÄ¼ş
-Project£º¹¤³ÌÎÄ¼ş
-startup:Ğ¾Æ¬Æô¶¯ÎÄ¼ş
-user£ºÓÃ»§±àĞ´µÄÏà¹ØÎÄ¼ş£¬Ö÷Òª±àĞ´µÄÎÄ¼ş¶¼ÔÚÕâ¸öÎÄ¼ş¼ĞÏÂ
+XJTLUå·¥ç¨‹ä»£ç   
+CMSISï¼šå†…æ ¸ç›¸å…³çš„æ–‡ä»¶  
+FWLIBï¼šæ ‡å‡†åº“æ–‡ä»¶  
+Projectï¼šå·¥ç¨‹æ–‡ä»¶  
+startup:èŠ¯ç‰‡å¯åŠ¨æ–‡ä»¶  
+userï¼šç”¨æˆ·ç¼–å†™çš„ç›¸å…³æ–‡ä»¶ï¼Œä¸»è¦ç¼–å†™çš„æ–‡ä»¶éƒ½åœ¨è¿™ä¸ªæ–‡ä»¶å¤¹ä¸‹  
 
-user/main.c\h :mainº¯ÊıËùÔÚµÄÎÄ¼ş
-user/AHRS£ºÍÓÂİÒÇÇı¶¯ÒÔ¼°×ËÌ¬½âËã
-user/APP£ºfreeRTOSÈÎÎñ
-user/DSP£ºDSP¿â
-user/FreeRTOS:ÒÆÖ²µÄfreeRTOSÎÄ¼ş
-user/hardware£ºÓ²¼ş²ã
-user/user_lib£º±àĞ´µÄÊıÑ§º¯Êı
+user/main.c\h :mainå‡½æ•°æ‰€åœ¨çš„æ–‡ä»¶  
+user/AHRSï¼šé™€èºä»ªé©±åŠ¨ä»¥åŠå§¿æ€è§£ç®—  
+user/APPï¼šfreeRTOSä»»åŠ¡  
+user/DSPï¼šDSPåº“  
+user/FreeRTOS:ç§»æ¤çš„freeRTOSæ–‡ä»¶  
+user/hardwareï¼šç¡¬ä»¶å±‚  
+user/user_libï¼šç¼–å†™çš„æ•°å­¦å‡½æ•°  
